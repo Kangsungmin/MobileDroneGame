@@ -1,0 +1,38 @@
+[
+{
+	"id": 0,
+	"title": "pupil",
+	"type": "drone",
+	"model": "pupil_body"
+},
+{
+	"id": 1,
+	"title": "pupilewing",
+	"type": "drone",
+	"model": "pupil_wing"
+},
+{
+	"id": 2,
+	"title": "machinegun",
+	"type": "drone",
+	"model": "machinegun"
+},
+{
+	"id": 3,
+	"title": "basicbody",
+	"type": "drone",
+	"model": "basic_body"
+},
+{
+	"id": 4,
+	"title": "basicwing",
+	"type": "drone",
+	"model": "basic_wing"
+},
+{
+	"id": 5,
+	"title": "eagle",
+	"type": "drone",
+	"model": "eagle"
+}
+]
