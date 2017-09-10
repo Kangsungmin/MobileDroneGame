@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Diagnostics;
 
 public class UIscripts : MonoBehaviour {
     public GameObject Drone,game_over_text, hpText, fuelText, damagedImg, GameOverMenu;
@@ -9,9 +10,14 @@ public class UIscripts : MonoBehaviour {
     private float health = 100.0f, maxHealth = 100.0f;
     private float fuel = 100.0f, maxFuel = 100.0f;
     Image healthBar, fuelBar;
-    // Use this for initialization
+
+    //스톱워치
+    public static Stopwatch stopwatch;
+    public Text TimeView; 
     void Start ()
     {
+        stopwatch = new Stopwatch();
+        stopwatch.Start();
         healthBar = transform.FindChild("HP").FindChild("HP_bar").GetComponent<Image>();
         fuelBar = transform.FindChild("FUEL").FindChild("Fuel_bar").GetComponent<Image>();
         damagedImg.SetActive(false);
@@ -35,6 +41,8 @@ public class UIscripts : MonoBehaviour {
             joystickRight.GetComponent<Image>().enabled = false;
             GameOverMenu.SetActive(true);
         }
+
+        TimeView.GetComponent<Text>().text = stopwatch.Elapsed.Minutes+" : "+stopwatch.Elapsed.Seconds + " : " +stopwatch.Elapsed.Milliseconds/100;
         /*
         if (Drone.gameObject.GetComponent<Drone>().Damaged)
         {

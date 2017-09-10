@@ -1,0 +1,20 @@
+[
+  {
+    "ID": 0,
+    "Title": "pizza",
+    "Value": 1,
+    "Slug": "Item_pizza"
+  },
+  {
+    "ID": 1,
+    "Title": "speedItem",
+    "Value": 3,
+    "Slug": "Item_boost"
+  },
+  {
+    "ID": 2,
+    "Title": "powerItem",
+    "Value": 3,
+    "Slug": "Item_power"
+  }
+]

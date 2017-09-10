@@ -42,9 +42,7 @@ public class Drone : MonoBehaviour {
     public VirtualJS_Left moveJoystickLeft;//조이스틱 객체
     public VirtualJS_Right moveJoystickRight;
     
-
-    public Animation ani;
-
+    
     //타게팅변수들[시작]
     private Transform target;
     public float range = 100f;
@@ -68,7 +66,6 @@ public class Drone : MonoBehaviour {
         HingeJoint hinge = GetComponent<HingeJoint>();
         wingDir = new Vector3(270, 180, 0);
         bodyDir = Vector3.zero;
-        ani = GetComponent<Animation>();
         //타겟확인 함수 호출
         InvokeRepeating("UpdateTarget", 0f, 0.5f);//0.5초마다 갱신
     }
@@ -260,18 +257,20 @@ public class Drone : MonoBehaviour {
         }
         else if (col.tag == "pizza")//피자아이템을 획득
         {
+            col.transform.gameObject.SetActive(false);
             InventoryManager.GetComponent<Inventory>().AddItem(0);
             //피자 제거
-            col.transform.gameObject.SetActive(false);
             //col.gameObject.SetActive(false);
         }
-        else if (col.tag == "NPC_MAN")
+        else if (col.tag.Contains("NPC_R"))//미션 관련 NPC를 만났을 때,
         {
             if (InventoryManager.GetComponent<Inventory>().isItem(0))//id(0)은 피자.
             {
                 InventoryManager.GetComponent<Inventory>().RemoveItem(0);//피자 아이템을 제거한다.
                 print("피자배달 완료");
                 //Playenv에 메세지 전달
+                col.gameObject.GetComponent<Animator>().SetInteger("State", 2);//NPC애니메이션 설정
+                col.tag = "NPC";//태그 수정
                 playEnvironment.GetComponent<Playenv>().MissionCount--;
             }
             else
