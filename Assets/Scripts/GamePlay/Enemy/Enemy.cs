@@ -3,35 +3,73 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Enemy : MonoBehaviour {
-    private int health = 100, maxHealth = 100;
-    
-    private Image healthBar;
-    public GameObject Camera;
-    public int Health { get { return health; } }
-	// Use this for initialization
-	void Start () {
-        healthBar = transform.FindChild("EnemyCanvas").FindChild("HealthBG").FindChild("Health").GetComponent<Image>();
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        if (health <= 0)
-        {
-            //드론 자동조준 해제시켜준다.
+public abstract class Enemy : MonoBehaviour {
+    private string Ename;
+    private float speed;
+    private float hp, maxhp;
+    private float durable;
+    private int gold;//처치시 플레이어가 얻는 골드
+    private int exp;//처치시 플에이어가 얻는 경험치
+    private float range;
+    private string state;
+    protected List<Item> DropItemList = new List<Item>();
+    public GameObject EnemyDataUI;
+    public Image healthBar;
+    public GameObject[] Player;//Player
+    public GameObject PlayEnvironment;
+    // Use this for initialization
 
-            gameObject.SetActive(false);//비활성화 시킨다
-            
-            //Camera.gameObject.GetComponent<Playenv>().killCount++;
-
-            //gameObject.tag = "enemy_dead";
-            //gameObject.GetComponent<EnemyAnim>().isDead = true;//EnmeyAnim의 state를 -1로 전환한다.
-        }
-    }
-
-    public void Hit(int damage)
+    public string Name
     {
-        health -= damage;
-        healthBar.fillAmount = (float)health / (float)maxHealth;  
+        get { return Ename; }
+        set { Ename = value; }
     }
+
+    public float Speed
+    {
+        get { return speed; }
+        set { speed = value; }
+    }
+
+    public float HP
+    {
+        get { return hp; }
+        set { hp = value; }
+    }
+    public float MaxHP
+    {
+        get { return maxhp; }
+        set { maxhp = value; }
+    }
+    public float Durable
+    {
+        get { return durable; }
+        set { durable = value; }
+    }
+
+    public int Gold
+    {
+        get { return gold; }
+        set { gold = value; }
+    }
+
+    public int Exp
+    {
+        get { return exp; }
+        set { exp = value; }
+    }
+    
+
+    public float Range
+    {
+        get { return range; }
+        set { range = value; }
+    }
+    public string State
+    {
+        get { return state; }
+        set { state = value; }
+    }
+    abstract public void TakeDamage(float amount);
+    abstract public void DropItems();
 }

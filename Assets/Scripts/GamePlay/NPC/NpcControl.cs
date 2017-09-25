@@ -13,7 +13,7 @@ public class NpcControl : MonoBehaviour
     public GameObject Ray;
     Animator NPCAnimation;
     bool StateReserved;
-
+    GameObject[] Player;
     // Use this for initialization
     void Start()
     {
@@ -21,6 +21,7 @@ public class NpcControl : MonoBehaviour
         speed = 2;
         range = 3.0f;
         NPCAnimation = GetComponent<Animator>();
+        Player = GameObject.FindGameObjectsWithTag("Player");
     }
 
     // Update is called once per frame
@@ -85,7 +86,7 @@ public class NpcControl : MonoBehaviour
         }
 
         
-        GameObject[] Player = GameObject.FindGameObjectsWithTag("Player");
+        
         foreach (GameObject p in Player)
         {
             float distanceToPlayer = Vector3.Distance(transform.position, p.transform.position);

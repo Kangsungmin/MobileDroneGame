@@ -12,14 +12,11 @@ public class ItemDatabase : MonoBehaviour {
     JsonManager JManager;
     private List<Item> database = new List<Item>();
     private JsonData itemData;
-    public Text pathTest;
     string path = string.Empty;
 
 
     void Start()
     {
-
-
         /* Json읽어오는 경로
          * PC, Android, IOS가 각각 다르다
          * PC : path = Application.dataPath + "/StreamingAssets";
@@ -29,17 +26,13 @@ public class ItemDatabase : MonoBehaviour {
         path = Application.streamingAssetsPath + "/Items.json";
         if (Application.platform == RuntimePlatform.Android)//안드로이드의 경우 File.IO로 읽지 못한다.
         {
-            pathTest.text += "\n안드로이드입니다.";
             StartCoroutine("Load");            
         }
         else//Window Mac IOS 환경일 시
         {
-            pathTest.text += "\n윈도우입니다.";
             itemData = JsonMapper.ToObject(File.ReadAllText(path));//읽어올 경로 Application.dataPath + "/Streaming/Items.json"
             ConstructItemDatabase();
         }
-        
-        
     }
 
     public Item FetchItemByID(int id)
@@ -53,7 +46,6 @@ public class ItemDatabase : MonoBehaviour {
     
     void ConstructItemDatabase()
     {
-        pathTest.text += "Json변환\n";
         for (int i=0; i< itemData.Count; i++)//json파일의 id수 만큼
         {
             database.Add(new Item((int)itemData[i]["ID"], itemData[i]["Title"].ToString(), (int)itemData[i]["Value"], (string)itemData[i]["Slug"] ));//읽어온 데이터삽입: i번째의 id, title, value 를 Item객체화, DB에 삽입
@@ -62,16 +54,13 @@ public class ItemDatabase : MonoBehaviour {
 
     IEnumerator Load()
     {
-        pathTest.text += "경로 가져오기시작\n";
         WWW www = new WWW(path);
         yield return www;
-        pathTest.text += "경로 가져옴\n";
         if (www.isDone)
         {
             itemData = JsonMapper.ToObject(www.text);
-            pathTest.text += "jsonData변환\n";
             ConstructItemDatabase();
-        }else pathTest.text += "실패\n";
+        }else ;
 
     }
 
@@ -91,8 +80,6 @@ public class Item
         this.Value = value;
         this.Sprite = Resources.Load<Sprite>("sprite/Items/" + slug);
     }
-
-
     public Item()
     {
         this.ID = -1;

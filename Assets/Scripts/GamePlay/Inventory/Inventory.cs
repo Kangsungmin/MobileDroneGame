@@ -39,24 +39,47 @@ public class Inventory : MonoBehaviour {
          */
 
         Item itemToAdd = database.FetchItemByID(id);//DB리스트에 해당 id가 있으면 가져온다.
-        /*
-         * 처음 슬롯부터 탐색하여 비어있는 슬롯이 있다면
-         * 그곳에 아이템을 넣는다.
-         */ 
-        for (int i = 0; i < items.Count; i++)
+        if (CheckItemIs(itemToAdd))
         {
-            if (items[i].ID == -1)//빈 아이템
+            for (int i = 0; i < items.Count; i++)
             {
-                items[i] = itemToAdd;
-                GameObject itemObj = Instantiate(inventoryItem);
-                itemObj.transform.SetParent(slots[i].transform);//아이템의 부모를 슬롯으로 설정
-                itemObj.GetComponent<Image>().sprite = itemToAdd.Sprite;//아이템 이미지 설정
-                itemObj.transform.localPosition = Vector2.zero;
-                itemObj.name = itemToAdd.Title;
-
-                break;
+                if(items[i].ID == id)
+                {
+                    ItemData data = slots[i].transform.GetChild(1).GetComponent<ItemData>();
+                    data.amount++;
+                    data.transform.GetChild(0).GetComponent<Text>().text = data.amount.ToString();
+                    break;
+                }
             }
         }
+        else
+        {
+            /*
+         * 처음 슬롯부터 탐색하여 비어있는 슬롯이 있다면
+         * 그곳에 아이템을 넣는다.
+         */
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (items[i].ID == -1)//빈 아이템
+                {
+                    items[i] = itemToAdd;
+                    GameObject itemObj = Instantiate(inventoryItem);
+                    itemObj.transform.SetParent(slots[i].transform);//아이템의 부모를 슬롯으로 설정
+                    itemObj.GetComponent<Image>().sprite = itemToAdd.Sprite;//아이템 이미지 설정
+                    itemObj.transform.localPosition = Vector2.zero;
+                    itemObj.name = itemToAdd.Title;
+                    int Amount = ++itemObj.GetComponent<ItemData>().amount;
+                    itemObj.transform.GetChild(0).GetComponent<Text>().text = Amount.ToString();
+
+                    break;
+                }
+            }
+        }
+        
+        
+        
+        
 
     }
 
@@ -75,10 +98,26 @@ public class Inventory : MonoBehaviour {
         {
             if (items[i].ID == id)//빈 아이템
             {
-                items[i] = new Item();
-                Destroy(slots[i].transform.Find("pizza").gameObject);
+                ItemData data = slots[i].transform.GetChild(1).GetComponent<ItemData>();
+                if(data.amount == 1)
+                {
+                    items[i] = new Item();
+                    Destroy(slots[i].transform.Find("pizza").gameObject);
+                }
+                else
+                {
+                    data.amount--;
+                    data.transform.GetChild(0).GetComponent<Text>().text = data.amount.ToString();
+                }
                 break;
             }
         }
+    }
+
+    bool CheckItemIs(Item item)
+    {
+        for (int i=0; i < items.Count; i++)
+            if (items[i].ID == item.ID) return true;
+        return false; 
     }
 }

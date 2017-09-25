@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 public class Menu : MonoBehaviour {
     public GameObject LevelMenu;
-    public Text Path;
+    public SceneFader fader;
+    //public Text Path;
     //public AudioClip backMusic;
     void Start()
     {
@@ -13,7 +14,7 @@ public class Menu : MonoBehaviour {
         //화면 사이즈 적용
         Screen.SetResolution(1280, 800, true);
         Time.timeScale = 1;
-        Path.text = Application.dataPath;
+        //Path.text = Application.dataPath;
         Debug.Log("플레이어 레벨 : " + PlayerDataManager.level);
         Debug.Log("경험치 : " + PlayerDataManager.exp);
         Debug.Log("돈 : "+ PlayerDataManager.money);
@@ -27,18 +28,14 @@ public class Menu : MonoBehaviour {
     {
         LevelMenu.SetActive(false);
     }
-    public void GoLab()
+    public void GoShop()
     {
-        Invoke("startLab", .1f);
+        fader.FadeTo("Shop");
     }
+
     public void Exit()
     {
         Invoke("doExit", .1f);
-    }
-
-    void startLab()
-    {
-        Application.LoadLevel("LabScene");
     }
 
     void doExit()

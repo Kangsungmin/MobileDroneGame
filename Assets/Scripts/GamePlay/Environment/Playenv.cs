@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
  */
 public class Playenv : MonoBehaviour
 {
-    static SceneData sceneData = new SceneData();
+    UIscripts UIManager;
     public string MapName;
     public int StageLevel;
     public int killCount = 0;
@@ -23,121 +23,208 @@ public class Playenv : MonoBehaviour
     //미션클리어UI
     public GameObject MissonBackground, Title_Mission, Title_Clear, SubTitle, MissionClearPanel;
     // Use this for initialization
+    GameObject AllNpc, AllEnemy, AllItems;
+    GameObject[] thisRoundEnemys;
+    GameObject DroneSpawn;
+
+    void Awake(){
+        DroneSpawn = GameObject.Find("DroneSpawnArea");
+        GameObject PlayerDrone = Resources.Load("Prefabs/Drones/Drone_" + PlayerDataManager.nowUsingModel.Title) as GameObject;
+        print(PlayerDrone.name);
+        Instantiate(PlayerDrone, DroneSpawn.transform.position, DroneSpawn.transform.rotation);
+    }
     void Start()
     {
         Time.timeScale = 1;
         Screen.SetResolution(1280, 800, true);
+        UIManager = GameObject.Find("UI").GetComponent<UIscripts>();
+        AllNpc = GameObject.Find("KeyNpcs");
+        AllEnemy = GameObject.Find("Enemys");
+        AllItems = GameObject.Find("KeyItems");
+        
         MapName = SceneData.MapName;//현재 맵 이름
         StageLevel = int.Parse(SceneData.SceneLevelName);//현재 스테이지 레벨
         Debug.Log("맵 이름 : " + MapName + "\n스테이지 레벨: " + StageLevel);
 
         MssionPanel.SetActive(true);
+        //자신이 현재 선택한 드론을 생성한다.
+        
+
+        /*
+         * ==============현재 스테이지에 필요한 오브젝트만 활성화 시킨다.[시작]================ 
+         * NPC 활성화/비활성화
+         * Enemy 활성화/비활성화
+         * Item 활성화/비활성화
+         */
+        for (int i =0; i<AllNpc.transform.childCount; i++)
+        {
+            Transform StageNpcs = AllNpc.transform.GetChild(i);
+            if (!StageNpcs.name.Equals("Stage" + StageLevel)) StageNpcs.gameObject.SetActive(false);
+        }
+        for (int i=0; i< AllItems.transform.childCount; i++)
+        {
+            Transform StageItems = AllItems.transform.GetChild(i);
+            if (!StageItems.name.Equals("Stage" + StageLevel)) StageItems.gameObject.SetActive(false);
+        }
+        //==============현재 스테이지에 필요한 오브젝트만 활성화 시킨다.[끝]==================
+
         switch (StageLevel)
         {
             case 1:
                 //미션 설명
                 MissionExplainText.text = "피자가게 앞에서 피자를 얻고, 피자를 원하는 사람에게 배달하세요.";
                 MissionCount = 1;
-
-                //미션완료 메세지 출력
-                //메뉴 씬으로 전환
                 break;
             case 2:
+                MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
+                MissionCount = 1;
                 break;
             case 3:
                 MissionExplainText.text = "피자를 여러 사람에게 배달하세요.";
-                MissionCount = 4;
+                MissionCount = 3;
+                //현재 스테이지에 맞는 NPC 생성
                 break;
             case 4:
+                MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
+                MissionCount = 2;
                 break;
             case 5:
+                MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
+                MissionCount = 3;
                 break;
         }
     }
 
     void Update()
     {
-        switch (StageLevel)
+        if (MissionCount > -1 )
         {
-            case 1:
-                //미션 완료 검사
-                if (MissionCount == 0)
-                {
-                    //현재까지 걸리 시간 측정, Rating
-                    int score;
-                    if (UIscripts.stopwatch.Elapsed.Seconds > 120)
+            switch (StageLevel)
+            {
+                case 1:
+                    //미션 완료 검사
+                    if (MissionCount == 0)
                     {
-                        score = 1;
+                        //현재까지 걸리 시간 측정, Rating
+                        int score;
+                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 120)
+                        {
+                            score = 1;
+                        }
+                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 45)
+                        {
+                            score = 2;
+                        }
+                        else//별 3개
+                        {
+                            score = 3;
+                        }
+                        UIManager.MissionEnd(score, 30, 25);
+                        MissionEnd(score, 30, 25);
+                        MissionCount = -1;
                     }
-                    else if (UIscripts.stopwatch.Elapsed.Seconds > 45)
+                    //NPC에게 피자 배달이 올 때까지 검사.(미션 클리어시 까지 대기한다.)
+                    break;
+                case 2:
+                    /*
+                    int count = 0;
+                    foreach (GameObject enemy in thisRoundEnemys)
                     {
-                        score = 2;
+                        if (enemy.activeSelf) count++;
                     }
-                    else//별 3개
+                    MissionCount = count;
+                    */
+                    if (MissionCount == 0)
                     {
-                        score = 3;
+                        int score = 0;
+                        //현재까지 걸린시간과 남은 HP를 계산하여 별을 준다.
+                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 85)//85초 초과 OR HP 20이하
+                        {
+                            score = 1;
+                        }
+                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 65)//65초 초과하거나 OR HP가 60이하일때
+                        {
+                            score = 2;
+                        }
+                        else score = 3;
+                        UIManager.MissionEnd(score, 45, 20);
+                        MissionEnd(score, 45, 20);
+                        MissionCount = -1;
                     }
-
-                    MissionClear(score,30,25);
-                    MissionCount = -1;
-                }
-                //NPC에게 피자 배달이 올 때까지 검사.(미션 클리어시 까지 대기한다.)
-                break;
-            case 2:
-                break;
-            case 3:
-                if (MissionCount == 0)
-                {
-                    int score;
-                    if (UIscripts.stopwatch.Elapsed.Seconds > 500)
+                    break;
+                case 3:
+                    if (MissionCount == 0)
                     {
-                        score = 1;
+                        int score;
+                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 400)
+                        {
+                            score = 1;
+                        }
+                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 150)
+                        {
+                            score = 2;
+                        }
+                        else//별 3개
+                        {
+                            score = 3;
+                        }
+                        UIManager.MissionEnd(score, 30, 25);
+                        MissionEnd(score, 120, 85);
+                        MissionCount = -1;
                     }
-                    else if (UIscripts.stopwatch.Elapsed.Seconds > 300)
+                    break;
+                case 4:
+                    if (MissionCount == 0)
                     {
-                        score = 2;
+                        int score = 0;
+                        //현재까지 걸린시간과 남은 HP를 계산하여 별을 준다.
+                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 155)//85초 초과 OR HP 20이하
+                        {
+                            score = 1;
+                        }
+                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 115)//65초 초과하거나 OR HP가 60이하일때
+                        {
+                            score = 2;
+                        }
+                        else score = 3;
+                        UIManager.MissionEnd(score, 45, 20);
+                        MissionEnd(score, 45, 20);
+                        MissionCount = -1;
                     }
-                    else//별 3개
+                    break;
+                case 5:
+                    if (MissionCount == 0)
                     {
-                        score = 3;
+                        int score = 0;
+                        //현재까지 걸린시간과 남은 HP를 계산하여 별을 준다.
+                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 175)//85초 초과 OR HP 20이하
+                        {
+                            score = 1;
+                        }
+                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 120)//65초 초과하거나 OR HP가 60이하일때
+                        {
+                            score = 2;
+                        }
+                        else score = 3;
+                        UIManager.MissionEnd(score, 45, 20);
+                        MissionEnd(score, 45, 20);
+                        MissionCount = -1;
                     }
-                    MissionClear(score, 30, 25);
-                    MissionCount = -1;
-                }
-                break;
-            case 4:
-                break;
-            case 5:
-                break;
+                    break;
+            }
         }
+        
     }
+    
+
+
     //==============================미션 클리어[시작]====================================
-    public void MissionClear(int Rate, int getExp, int amountMoney)
+    public void MissionEnd(int Rate, int getExp, int amountMoney)
     {
-        //Time.timeScale = 0;//게임 정지
-
-        UIscripts.stopwatch.Reset();
-
-        //1.백그라운드 활성화
-        MissonBackground.SetActive(true);
-        //2.Mission & Subtitle 활성화 
-        Title_Mission.SetActive(true);
-        SubTitle.SetActive(true);
-        //3.Clear & 패널 활성화 (점차)
-        Title_Clear.SetActive(true);
-        MissionClearPanel.SetActive(true);
-
-        //============보상[시작]====================================================
+        //============보상[시작]=====================================================
         PlayerDataManager.playerDataManager.AddExp(getExp);//현재 경험치 
         PlayerDataManager.playerDataManager.IncreaseMoney(amountMoney);//얻은 돈
         //============보상[끝]==================================17.09.04 성민 최종수정
-
-        //============보상출력[시작]=================================================
-
-        RatingView.GetComponent<Rating>().SetRate(Rate);//별 개수
-        MissionClearView.GetComponent<MissionReward>().ViewUpdate(amountMoney, PlayerDataManager.level, PlayerDataManager.exp);
-        //============보상출력[끝]==============================17.09.05 성민 최종수정
-
     }
     //==============================미션 클리어[끝]=============17.09.06 성민 최종수정
 
@@ -151,7 +238,6 @@ public class Playenv : MonoBehaviour
     {
         print("메뉴 씬 호출");
         Application.LoadLevel("Menu");
-        
     }
 
     public void retrytGame()

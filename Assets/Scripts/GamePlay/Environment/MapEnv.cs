@@ -17,7 +17,7 @@ public class MapEnv : MonoBehaviour {
             case 4: rot = 270; break;
 
         }
-        transform.Rotate(Vector3.up*rot);
+        //transform.Rotate(Vector3.up*rot);
 	}
 	
 	// Update is called once per frame

@@ -10,7 +10,7 @@ public class SceneData : MonoBehaviour {
 
     void Awake()
     {
-        sceneData = new SceneData();
+        sceneData = transform.GetComponent<SceneData>();
     }
 
     //============================스테이지 호출[시작]===============================
@@ -21,8 +21,5 @@ public class SceneData : MonoBehaviour {
         
     }
     //============================스테이지 호출[끝]=================================
-
-    
-
 
 }

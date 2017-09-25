@@ -5,7 +5,10 @@ using UnityEngine.UI;
 using System.Diagnostics;
 
 public class UIscripts : MonoBehaviour {
-    public GameObject Drone,game_over_text, hpText, fuelText, damagedImg, GameOverMenu;
+    GameObject Player;
+    public GameObject damagedImg;
+    public GameObject MissonBackground, Title_Mission, Title_Clear, SubTitle, MissionClearPanel;
+    public GameObject RatingView, MissionClearView;
     public Image fireBtn, joystickLeft, joystickRight ;
     private float health = 100.0f, maxHealth = 100.0f;
     private float fuel = 100.0f, maxFuel = 100.0f;
@@ -16,6 +19,7 @@ public class UIscripts : MonoBehaviour {
     public Text TimeView; 
     void Start ()
     {
+        Player = GameObject.FindGameObjectWithTag("Player");
         stopwatch = new Stopwatch();
         stopwatch.Start();
         healthBar = transform.FindChild("HP").FindChild("HP_bar").GetComponent<Image>();
@@ -24,32 +28,42 @@ public class UIscripts : MonoBehaviour {
     }
     // Update is called once per frame
     void Update () {
-        if(Drone.gameObject.GetComponent<Drone>().GameOver) game_over_text.SetActive(true);
-        hpText.GetComponent<Text>().text = health + "";
-        fuelText.GetComponent<Text>().text = fuel + "";
+            health = Player.gameObject.GetComponent<Drone>().Hp;
+            fuel = Player.gameObject.GetComponent<Drone>().Fuel;
 
-        health = Drone.gameObject.GetComponent<Drone>().My_Hp;
-        fuel = Drone.gameObject.GetComponent<Drone>().Fuel;
+            healthBar.fillAmount = (float)health / (float)maxHealth;
+            fuelBar.fillAmount = (float)fuel / (float)maxFuel;
+            if (health <= 0.0f || fuel <= 0.0f)//게임오버시
+            {
+                Player.gameObject.GetComponent<Drone>().GameOver = true;
+                MissionEnd(0, 0, 0);
+            }
 
-        healthBar.fillAmount = (float)health / (float)maxHealth;
-        fuelBar.fillAmount = (float)fuel / (float)maxFuel;
-        if (health <= 0.0f || fuel <= 0.0f)//게임오버시
-        {
-            Drone.gameObject.GetComponent<Drone>().GameOver = true;
-            fireBtn.GetComponent<Image>().enabled = false;
-            joystickLeft.GetComponent<Image>().enabled = false;
-            joystickRight.GetComponent<Image>().enabled = false;
-            GameOverMenu.SetActive(true);
-        }
-
-        TimeView.GetComponent<Text>().text = stopwatch.Elapsed.Minutes+" : "+stopwatch.Elapsed.Seconds + " : " +stopwatch.Elapsed.Milliseconds/100;
-        /*
-        if (Drone.gameObject.GetComponent<Drone>().Damaged)
-        {
-            damagedImg.SetActive(true);
-        }
-        */
+            TimeView.GetComponent<Text>().text = stopwatch.Elapsed.Minutes + " : " + stopwatch.Elapsed.Seconds + " : " + stopwatch.Elapsed.Milliseconds / 100;
     }
+
+    public void MissionEnd(int Rate, int getExp, int amountMoney)
+    {
+        stopwatch.Reset();
+        //1.백그라운드 활성화
+        MissonBackground.SetActive(true);
+        //2.Mission & Subtitle 활성화 
+        Title_Mission.SetActive(true);
+        SubTitle.SetActive(true);
+        //3.Clear & 패널 활성화 (점차)
+        Title_Clear.SetActive(true);
+        MissionClearPanel.SetActive(true);
+        RatingView.GetComponent<Rating>().SetRate(Rate);//별 개수
+
+        //============보상출력[시작]=================================================
+        RatingView.GetComponent<Rating>().SetRate(Rate);//별 개수
+        MissionClearView.GetComponent<MissionReward>().ViewUpdate(SceneData.SceneLevelName, amountMoney, PlayerDataManager.level, PlayerDataManager.exp);
+        //============보상출력[끝]==============================17.09.15 성민 최종수정
+
+
+    }
+
+
     public void damageAni()
     {
         damagedImg.SetActive(true);

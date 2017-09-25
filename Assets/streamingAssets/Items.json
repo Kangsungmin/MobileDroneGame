@@ -7,14 +7,14 @@
   },
   {
     "ID": 1,
-    "Title": "speedItem",
-    "Value": 3,
-    "Slug": "Item_boost"
+    "Title": "Brushed_Motor",
+    "Value": 1,
+    "Slug": "Brushed_motor"
   },
   {
     "ID": 2,
-    "Title": "powerItem",
-    "Value": 3,
-    "Slug": "Item_power"
+    "Title": "Propeller",
+    "Value": 1,
+    "Slug": "Propeller"
   }
 ]
