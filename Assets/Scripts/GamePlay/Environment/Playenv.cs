@@ -23,32 +23,25 @@ public class Playenv : MonoBehaviour
     //미션클리어UI
     public GameObject MissonBackground, Title_Mission, Title_Clear, SubTitle, MissionClearPanel;
     // Use this for initialization
-    GameObject AllNpc, AllEnemy, AllItems;
+    GameObject AllNpc, AllItems, AllSpwanArea;
     GameObject[] thisRoundEnemys;
     GameObject DroneSpawn;
 
     void Awake(){
-        DroneSpawn = GameObject.Find("DroneSpawnArea");
-        GameObject PlayerDrone = Resources.Load("Prefabs/Drones/Drone_" + PlayerDataManager.nowUsingModel.Title) as GameObject;
-        print(PlayerDrone.name);
-        Instantiate(PlayerDrone, DroneSpawn.transform.position, DroneSpawn.transform.rotation);
-    }
-    void Start()
-    {
         Time.timeScale = 1;
         Screen.SetResolution(1280, 800, true);
         UIManager = GameObject.Find("UI").GetComponent<UIscripts>();
         AllNpc = GameObject.Find("KeyNpcs");
-        AllEnemy = GameObject.Find("Enemys");
         AllItems = GameObject.Find("KeyItems");
-        
+        AllSpwanArea = GameObject.Find("SpawnAreas");
+
         MapName = SceneData.MapName;//현재 맵 이름
         StageLevel = int.Parse(SceneData.SceneLevelName);//현재 스테이지 레벨
         Debug.Log("맵 이름 : " + MapName + "\n스테이지 레벨: " + StageLevel);
 
         MssionPanel.SetActive(true);
         //자신이 현재 선택한 드론을 생성한다.
-        
+
 
         /*
          * ==============현재 스테이지에 필요한 오브젝트만 활성화 시킨다.[시작]================ 
@@ -56,43 +49,62 @@ public class Playenv : MonoBehaviour
          * Enemy 활성화/비활성화
          * Item 활성화/비활성화
          */
-        for (int i =0; i<AllNpc.transform.childCount; i++)
+        for (int i = 0; i < AllNpc.transform.childCount; i++)
         {
             Transform StageNpcs = AllNpc.transform.GetChild(i);
             if (!StageNpcs.name.Equals("Stage" + StageLevel)) StageNpcs.gameObject.SetActive(false);
         }
-        for (int i=0; i< AllItems.transform.childCount; i++)
+        for (int i = 0; i < AllItems.transform.childCount; i++)
         {
             Transform StageItems = AllItems.transform.GetChild(i);
             if (!StageItems.name.Equals("Stage" + StageLevel)) StageItems.gameObject.SetActive(false);
         }
+        for (int i = 0; i < AllSpwanArea.transform.childCount; i++)
+        {
+            Transform StageSpawnArea = AllSpwanArea.transform.GetChild(i);
+            if (!StageSpawnArea.name.Equals("Stage" + StageLevel)) StageSpawnArea.gameObject.SetActive(false);
+        }
+        DroneSpawn = GameObject.Find("DroneSpawnArea");
+        GameObject PlayerDrone = Resources.Load("Prefabs/Drones/Drone_" + PlayerDataManager.nowUsingModel.Title) as GameObject;
+        Instantiate(PlayerDrone, DroneSpawn.transform.position, DroneSpawn.transform.rotation);
         //==============현재 스테이지에 필요한 오브젝트만 활성화 시킨다.[끝]==================
 
+    }
+    void Start()
+    {
+        
         switch (StageLevel)
         {
             case 1:
                 //미션 설명
-                MissionExplainText.text = "피자가게 앞에서 피자를 얻고, 피자를 원하는 사람에게 배달하세요.";
-                MissionCount = 1;
-                break;
-            case 2:
+                UIscripts.CountDown = 70.0f;
                 MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
                 MissionCount = 1;
                 break;
+            case 2:
+                UIscripts.CountDown = 60.0f;
+                MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
+                MissionCount = 2;
+                break;
             case 3:
+                UIscripts.CountDown = 120.0f;
                 MissionExplainText.text = "피자를 여러 사람에게 배달하세요.";
                 MissionCount = 3;
                 //현재 스테이지에 맞는 NPC 생성
                 break;
             case 4:
+                UIscripts.CountDown = 90.0f;
                 MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
                 MissionCount = 2;
                 break;
             case 5:
+                UIscripts.CountDown = 120.0f;
                 MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
                 MissionCount = 3;
                 break;
         }
+
+        
     }
 
     void Update()
@@ -107,11 +119,11 @@ public class Playenv : MonoBehaviour
                     {
                         //현재까지 걸리 시간 측정, Rating
                         int score;
-                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 120)
+                        if (UIscripts.CountDown < 15.0f)
                         {
                             score = 1;
                         }
-                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 45)
+                        else if (UIscripts.CountDown < 30.0f)
                         {
                             score = 2;
                         }
@@ -138,11 +150,11 @@ public class Playenv : MonoBehaviour
                     {
                         int score = 0;
                         //현재까지 걸린시간과 남은 HP를 계산하여 별을 준다.
-                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 85)//85초 초과 OR HP 20이하
+                        if (UIscripts.CountDown < 10.0f)//
                         {
                             score = 1;
                         }
-                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 65)//65초 초과하거나 OR HP가 60이하일때
+                        else if (UIscripts.CountDown < 20.0f)//
                         {
                             score = 2;
                         }
@@ -156,11 +168,11 @@ public class Playenv : MonoBehaviour
                     if (MissionCount == 0)
                     {
                         int score;
-                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 400)
+                        if (UIscripts.CountDown < 20.0f)
                         {
                             score = 1;
                         }
-                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 150)
+                        else if (UIscripts.CountDown < 40.0f)
                         {
                             score = 2;
                         }
@@ -178,11 +190,11 @@ public class Playenv : MonoBehaviour
                     {
                         int score = 0;
                         //현재까지 걸린시간과 남은 HP를 계산하여 별을 준다.
-                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 155)//85초 초과 OR HP 20이하
+                        if (UIscripts.CountDown < 10.0f)//85초 초과 OR HP 20이하
                         {
                             score = 1;
                         }
-                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 115)//65초 초과하거나 OR HP가 60이하일때
+                        else if (UIscripts.CountDown < 30.0f)//65초 초과하거나 OR HP가 60이하일때
                         {
                             score = 2;
                         }
@@ -197,11 +209,11 @@ public class Playenv : MonoBehaviour
                     {
                         int score = 0;
                         //현재까지 걸린시간과 남은 HP를 계산하여 별을 준다.
-                        if (UIscripts.stopwatch.Elapsed.TotalSeconds > 175)//85초 초과 OR HP 20이하
+                        if (UIscripts.CountDown < 15.0f)//85초 초과 OR HP 20이하
                         {
                             score = 1;
                         }
-                        else if (UIscripts.stopwatch.Elapsed.TotalSeconds > 120)//65초 초과하거나 OR HP가 60이하일때
+                        else if (UIscripts.CountDown < 35.0f)//65초 초과하거나 OR HP가 60이하일때
                         {
                             score = 2;
                         }
@@ -227,7 +239,10 @@ public class Playenv : MonoBehaviour
         //============보상[끝]==================================17.09.04 성민 최종수정
     }
     //==============================미션 클리어[끝]=============17.09.06 성민 최종수정
-
+    public void MissionFail()
+    {
+        MissionCount = -1;
+    }
 
     public void ExplainOk()
     {

@@ -30,7 +30,7 @@ public class ShopManager : MonoBehaviour {
     {
         //GUI 업데이트
         MoneyView.text = PlayerDataManager.money.ToString();
-        DroneModel thismodel = PlayerDataManager.modelDatabase.FetchItemByID(nowPoint);
+        DroneModel thismodel = DroneDatabase.FetchDroneByID(nowPoint);
         updateModelInfo(thismodel);
         if (CheckModelIs(thismodel))
         {
@@ -50,7 +50,7 @@ public class ShopManager : MonoBehaviour {
     public void BuyModel(int id)
     {
         //PlayerData에 있는지 확인, 없으면 구매: 플레이어프리팹 추가 후 새로고침
-        DroneModel model = PlayerDataManager.modelDatabase.FetchItemByID(id);
+        DroneModel model = DroneDatabase.FetchDroneByID(id);
         if (CheckModelIs(model))
         {
             //모델을 이미 보유하고 있음
@@ -61,11 +61,12 @@ public class ShopManager : MonoBehaviour {
             {
                 PlayerDataManager.playerDataManager.DecreaseMoney(model.Price);
                 //구매: 플레이어프리팹 추가 후 새로고침
-                PlayerPrefs.SetString("ownModels", PlayerPrefs.GetString("ownModels") + "," + id);
+                PlayerPrefs.SetString("Models", PlayerPrefs.GetString("Models") + "," + id);
             } else ;//돈이 부족합니다.
         }
         //새로고침
-        PlayerDataManager.playerDataManager.DBRefresh();
+        PlayerDataRefresh();
+        //PlayerDataManager.playerDataManager.DBRefresh();
     }
     void updateModelInfo(DroneModel model)
     {
@@ -84,6 +85,13 @@ public class ShopManager : MonoBehaviour {
     public void ThisModelBuy()//현재 모델 구매
     {
         BuyModel(nowPoint);
+    }
+    
+    public void PlayerDataRefresh()
+    {
+        PlayerDataManager.money = PlayerPrefs.GetInt("money");
+        PlayerDataManager.ownModels = PlayerDataManager.playerDataManager.ParseModels(PlayerPrefs.GetString("Models"));
+        PlayerDataManager.nowUsingModel = DroneDatabase.FetchDroneByID(PlayerPrefs.GetInt("nowModel"));
     }
 
     public void LeftShift()//좌로 이동
@@ -118,8 +126,8 @@ public class ShopManager : MonoBehaviour {
 
     public void ChangeModel()
     {
-        PlayerDataManager.nowUsingModel = PlayerDataManager.modelDatabase.FetchItemByID(nowPoint);//현재 모델로 교체
-        PlayerPrefs.SetInt("UsingModel", nowPoint);
+        PlayerDataManager.nowUsingModel = DroneDatabase.FetchDroneByID(nowPoint);//현재 모델로 교체
+        PlayerPrefs.SetInt("nowModel", nowPoint);
         print("현재 모델 "+PlayerDataManager.nowUsingModel.Title+"로 교체");
     }
 

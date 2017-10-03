@@ -3,31 +3,43 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Grab : MonoBehaviour {
-    public static string grabState;//Idle, Try, Using
-    public Animator GrabModeCtrl;//UI애니메이션
+    float Range = 3.0f;
+    GameObject GrabButton;
+    
+    GameObject target;
+    GameObject[] Boxes;
     // Use this for initialization
     void Start () {
-        grabState = "Idle";
-        GrabModeCtrl = GameObject.Find("UI").transform.Find("FireButtonActive").GetComponent<Animator>();
+        GrabButton = GameObject.Find("UI").transform.Find("GrabButton").gameObject;
+        Boxes = GameObject.FindGameObjectsWithTag("Box_R"+ int.Parse(SceneData.SceneLevelName));
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (grabState.Equals("Using")) GrabModeCtrl.SetBool("ATK", true);
-        else GrabModeCtrl.SetBool("ATK", false);
+        bool isBox = false;
+        if (Boxes != null)
+        {
+            foreach (GameObject B in Boxes)
+            {
+                float distanceToBox = Vector3.Distance(transform.position, B.transform.position);
+                if (distanceToBox < Range)
+                {
+                    isBox = true;
+                    target = B;
+                    GrabButton.SetActive(true);//상자 들기 버튼 활성화
+                }
+            }
+            if (!isBox) { target = null; GrabButton.SetActive(false); } //버튼 비활성화
+        }
+        else print("박스없음");
+        
     }
 
     public void GrabMode()
     {
-        switch (grabState)
-        {
-            case "Idle":
-                transform.root.SendMessage("GrabSomthing");
-                break;
-            case "Using":
-                transform.root.SendMessage("DropSomthing");
-                break;
-        }
+        transform.root.SendMessage("GrabSomthing",target);
     }
+
 }

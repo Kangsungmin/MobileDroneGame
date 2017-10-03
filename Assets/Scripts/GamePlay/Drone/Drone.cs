@@ -11,7 +11,7 @@ public abstract class Drone : MonoBehaviour {
     public bool AnimatorState;//idle
     public bool flyDelay = true;//canControl
     public bool fuelDelay = true;
-    public bool droneStarting;
+    public bool droneStarting = false;
     public bool DronePowerOn = false;
     public bool GameOver = false;
 
@@ -37,7 +37,7 @@ public abstract class Drone : MonoBehaviour {
     abstract public void getFuel();
     abstract public void Hit(int damage);
     abstract public void GetItem(GameObject item);
-    abstract public void GrabSomthing();
+    abstract public void GrabSomthing(GameObject target);
     abstract public void DropSomthing();
 
 }

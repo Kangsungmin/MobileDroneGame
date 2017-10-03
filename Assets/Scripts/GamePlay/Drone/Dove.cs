@@ -6,6 +6,7 @@ using System.Timers;
 
 public class Dove : Drone
 {
+    public ParticleSystem grabEffect;
     float endX, endZ;
     void Awake()
     {
@@ -19,7 +20,8 @@ public class Dove : Drone
         moveJoystickLeft = UIManager.transform.Find("VirtualJoystickLeft").GetComponent<VirtualJS_Left>();
         moveJoystickRight = UIManager.transform.Find("VirtualJoystickRight").GetComponent<VirtualJS_Right>();
         Claw = transform.Find("Claw");
-
+        grabEffect = transform.Find("FixRotation").Find("GrabEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        grabEffect.Stop();
         AnimatorState = true;//드론 에니메이션 상태
         wingDir = new Vector3(270, 180, 0);
         bodyDir = Vector3.zero;
@@ -326,11 +328,21 @@ public class Dove : Drone
               Time.deltaTime * 50);
     }
 
-    public override void GrabSomthing()
+    public override void GrabSomthing(GameObject targetObject)//물건을 집는 메소드
     {
-        Vector3[] BoxValues = rayCasting();
-        Claw.transform.position = BoxValues[1];
-        Claw.GetComponent<BoxCollider>().size = BoxValues[0];
+        //수정후
+        //인자로 받아온 오브젝트의 사이즈를 구한다.
+        //claw + 오브젝트 높이 의 위치 아래 오브젝트를 가져온다
+        targetObject.transform.GetComponent<BoxCollider>().enabled = false;
+        targetObject.transform.GetComponent<Rigidbody>().isKinematic = true;
+        Vector3 size = targetObject.transform.GetComponent<Renderer>().bounds.size;
+
+        transform.position = new Vector3(targetObject.transform.position.x, targetObject.transform.position.y + (size.y * 0.6f), targetObject.transform.position.z);
+        targetObject.transform.SetParent(transform);
+        Claw.GetComponent<BoxCollider>().size = size;
+        OnGrab.grabState = "Using";
+        //파티클 실행
+        GrabParticlePlay();
     }
     public override void DropSomthing()
     {
@@ -342,15 +354,26 @@ public class Dove : Drone
             transform.GetChild(3).parent = null;//물건 부모해제
         }
         Claw.GetComponent<BoxCollider>().size = new Vector3(0, 0, 0);
-        Claw.transform.position = new Vector3(transform.position.x, transform.position.y - 0.45f, transform.position.z);
-        Grab.grabState = "Idle";
+        //Claw.transform.position = new Vector3(transform.position.x, transform.position.y - 0.45f, transform.position.z);
     }
-
+    public void GrabParticlePlay()
+    {
+        grabEffect.Play();
+        //1.5초 후에 stop예약
+        //IEnumerator coroutine = ParticleStop(1.5f);
+        //StartCoroutine(coroutine);
+    }
+    IEnumerator ParticleStop(float time)
+    {
+        yield return new WaitForSeconds(time);
+        Debug.Log("파티클 종료");
+        grabEffect.Stop();
+    }
     Vector3[] rayCasting()
     {
         Vector3[] val = new Vector3[2];
         val[0] = new Vector3(0, 0, 0);
-        val[1] = Claw.transform.position;
+        val[1] = Claw.transform.position;//집게 위치
         Ray ray = new Ray(Claw.position, Claw.forward);
         RaycastHit hitObject;
         if (Physics.Raycast(ray, out hitObject, 3.0f))
@@ -361,9 +384,9 @@ public class Dove : Drone
                 hitObject.transform.GetComponent<BoxCollider>().enabled = false;
                 hitObject.transform.GetComponent<Rigidbody>().isKinematic = true;
                 hitObject.transform.SetParent(transform);
-                Grab.grabState = "Using";
-                val[0] = hitObject.transform.GetComponent<Renderer>().bounds.size;
-                val[1] = hitObject.transform.position;
+                OnGrab.grabState = "Using";
+                val[0] = hitObject.transform.GetComponent<Renderer>().bounds.size;//박스 사이즈
+                val[1] = hitObject.transform.position;//박스 위치
                 return val;//물건의 사이즈의 포지션을 리턴
             }
             else return val;
