@@ -1,5 +1,10 @@
 [
   {
+    "ID": 0,
+    "Title": "Beginner",
+    "Price": 0
+  },
+  {
     "ID": 1,
     "Title": "Spliter",
     "Price": 500

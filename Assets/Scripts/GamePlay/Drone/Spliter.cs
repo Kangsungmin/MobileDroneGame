@@ -339,6 +339,7 @@ public class Spliter : Drone
         transform.position = new Vector3(targetObject.transform.position.x, targetObject.transform.position.y + (size.y * 0.6f), targetObject.transform.position.z);
         targetObject.transform.SetParent(transform);
         Claw.GetComponent<BoxCollider>().size = size;
+        Claw.transform.position = targetObject.transform.position;
         OnGrab.grabState = "Using";
         GetComponent<Rigidbody>().mass += targetObject.GetComponent<Rigidbody>().mass;//드론의 무게를 증가시킨다.
         //파티클 실행
@@ -355,6 +356,7 @@ public class Spliter : Drone
             transform.GetChild(3).parent = null;//물건 부모해제
         }
         Claw.GetComponent<BoxCollider>().size = new Vector3(0, 0, 0);
+        Claw.transform.localPosition = new Vector3(0, 0, 0);
         //Claw.transform.position = new Vector3(transform.position.x, transform.position.y - 0.45f, transform.position.z);
     }
     public void GrabParticlePlay()

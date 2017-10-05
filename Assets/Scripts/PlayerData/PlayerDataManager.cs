@@ -21,25 +21,25 @@ public class PlayerDataManager : MonoBehaviour
     void Awake()
     {
         playerDataManager = this;
-        //초기화 할때 주석 제거
+        //PlayerPrefs.DeleteAll();
+        //초기화 할 때 주석 제거
         /*
-        PlayerPrefs.DeleteAll();
         PlayerPrefs.SetInt("spanner",5);
         PlayerPrefs.SetInt("money", 500);
         PlayerPrefs.SetInt("level", 1);
         PlayerPrefs.SetInt("exp", 0);
-        PlayerPrefs.SetInt("nowModel", 1);//현재 사용중인 모델 '1'
-        PlayerPrefs.SetString("Models", "1");//가진것 1번모델로 초기화
+        PlayerPrefs.SetInt("nowModel", 0);//현재 사용중인 모델 '1'
+        PlayerPrefs.SetString("Models", "0");//가진것 1번모델로 초기화
         */
         if (!PlayerPrefs.HasKey("level"))
         {
             //=====초기 사용자 세팅=========
             PlayerPrefs.SetInt("spanner",5);
-            PlayerPrefs.SetInt("money", 50);
+            PlayerPrefs.SetInt("money", 600);
             PlayerPrefs.SetInt("level", 1);
             PlayerPrefs.SetInt("exp", 0);
-            PlayerPrefs.SetInt("nowModel", 1);//현재 사용중인 모델 '1'
-            PlayerPrefs.SetString("Models", "1");//가진것 1번모델로 초기화
+            PlayerPrefs.SetInt("nowModel", 0);//현재 사용중인 모델 '1'
+            PlayerPrefs.SetString("Models", "0");//가진것 1번모델로 초기화
             
         }
         //modelDatabase 구성될 때 까지 대기
@@ -48,12 +48,10 @@ public class PlayerDataManager : MonoBehaviour
 
     void Start()
     {
-        
         print(DroneDatabase.path);
         //Log.text = "경로 : " + DroneDatabase.path + "\n";
         coroutine = DroneDBLoad();
         StartCoroutine(coroutine);//DB로드 완료후, PlayerPrefs을 로드한다.
-        
     }
 
     void Update()

@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 public class UIscripts : MonoBehaviour {
     GameObject Player;
-    public GameObject damagedImg;
+    public GameObject damagedImg, PauseMenu;
     public GameObject MissonBackground, Title_Mission, Title_Clear, SubTitle, MissionClearPanel, MissionPanelButtons;
     public GameObject RatingView, MissionClearView;
     public Image fireBtn, joystickLeft, joystickRight;
@@ -100,6 +100,18 @@ public class UIscripts : MonoBehaviour {
     void DamageEnd()
     {
         damagedImg.SetActive(false);
+    }
+
+    public void OnPause()
+    {
+        PauseMenu.SetActive(true);
+    }
+
+    
+    public void ContinuePlay()
+    {
+        PauseMenu.SetActive(false);
+        Time.timeScale = 1;
     }
 
 }

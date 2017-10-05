@@ -40,6 +40,8 @@ public class Playenv : MonoBehaviour
         Debug.Log("맵 이름 : " + MapName + "\n스테이지 레벨: " + StageLevel);
 
         MssionPanel.SetActive(true);
+        
+
         //자신이 현재 선택한 드론을 생성한다.
 
 
@@ -247,6 +249,12 @@ public class Playenv : MonoBehaviour
     public void ExplainOk()
     {
         MssionPanel.SetActive(false);
+    }
+
+    public void Pause()
+    {
+        Time.timeScale = 0;
+        UIManager.OnPause();
     }
 
     public void startMenu()
