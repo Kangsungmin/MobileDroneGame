@@ -9,7 +9,7 @@ public class GaugeHand : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         direction = "R";
-        speed = 5.0f;
+        speed = 60.0f;
         gaugePos = -120.0f;
 	}
 	
@@ -20,20 +20,20 @@ public class GaugeHand : MonoBehaviour {
      */
 	void Update () {
         
-        if (direction.Equals("R"))
-        {
-            gaugePos += 1.0f * speed;
-            if (gaugePos >= 120) direction = "L";
-        }
-        else
-        {
-            gaugePos -= 1.0f * speed;
-            if (gaugePos <= -120.0f) direction = "R";
-        }
 	}
     void FixedUpdate()
     {
         transform.localPosition = new Vector3(gaugePos, 0, 0);
+        if (direction.Equals("R"))
+        {
+            gaugePos += 0.1f * speed;
+            if (gaugePos >= 120) direction = "L";
+        }
+        else
+        {
+            gaugePos -= 0.1f * speed;
+            if (gaugePos <= -120.0f) direction = "R";
+        }
     }
     public void ResetGauge()
     {

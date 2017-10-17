@@ -15,16 +15,15 @@ public class OnGrab : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         grabState = "Idle";
         Drone = GameObject.FindGameObjectWithTag("Player");
         DroneClaw = GameObject.FindGameObjectWithTag("Player").transform.Find("Claw").gameObject;
-        GrabModeCtrl = GameObject.Find("UI").transform.Find("GrabButtonActive").GetComponent<Animator>();
+        GrabModeCtrl = GameObject.Find("UI").transform.Find("GrabButtonParent").GetComponent<Animator>();
         GaugeUI.SetActive(false);
 
     }
 
     void Update()
     {
-        if(grabState.Equals("Using"))
-            GrabModeCtrl.SetBool("ATK",true);
-        else GrabModeCtrl.SetBool("ATK", false);
+        //if(grabState.Equals("Using"))  
+        //else 
     }
     public void OnPointerDown(PointerEventData eventData)//버튼 눌린상태
     {
@@ -60,12 +59,14 @@ public class OnGrab : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         else
         {
             grabState = "Idle";
+            GrabModeCtrl.SetBool("ATK", false);
         }
     }
 
     public void Grab()//Claw의 Grab호출
     {
         grabState = "Using";
+        GrabModeCtrl.SetBool("ATK", true);
         DroneClaw.GetComponent<Grab>().GrabMode();
     }
 }

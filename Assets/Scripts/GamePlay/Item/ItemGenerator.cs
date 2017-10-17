@@ -5,13 +5,12 @@ using UnityEngine;
 public class ItemGenerator : MonoBehaviour {
     public GameObject genitem;
     bool genScheduled = false;
-    void Start()
+    void Awake()
     {
         Transform temp = (Transform)Instantiate(genitem.transform, transform.position, transform.rotation);
         temp.SetParent(transform);//이곳을 부모로 지정
         temp.name = genitem.name;
     }
-	
 	// Update is called once per frame
 	void Update () {
         if ((transform.childCount == 0) && (genScheduled == false))

@@ -18,7 +18,6 @@ public class Charger : MonoBehaviour {
             StartCoroutine("chargerOn");//20초 후에 킨다.
             chargeOn = true;//키는것 예약 했으므로 true
         }
-        
     }
     IEnumerator chargerOn()
     {

@@ -16,7 +16,10 @@ public class InformationUI : MonoBehaviour {
 
     public void OnAddSpanner()
     {
-        AddSpannerPanel.SetActive(true);
+        if (PlayerDataManager.spanner <10)
+        {
+            AddSpannerPanel.SetActive(true);
+        }
     }
     public void OffAddSpanner()
     {

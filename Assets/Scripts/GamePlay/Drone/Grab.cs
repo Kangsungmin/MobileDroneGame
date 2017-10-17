@@ -4,19 +4,20 @@ using UnityEngine;
 
 public class Grab : MonoBehaviour {
     float Range = 3.0f;
-    GameObject GrabButton;
-    
+    GameObject gaugueUI;
+    GameObject GrabButtonAni, GrabButton;
     GameObject target;
-    GameObject[] Boxes;
+    GameObject[] Boxestemp;
+    List<GameObject> Boxes = new List<GameObject>();
     // Use this for initialization
     void Start () {
+        GrabButtonAni = GameObject.Find("UI").transform.Find("GrabButtonParent").gameObject;
         GrabButton = GameObject.Find("UI").transform.Find("GrabButton").gameObject;
-        Boxes = GameObject.FindGameObjectsWithTag("Box_R"+ int.Parse(SceneData.SceneLevelName));
-        
+        gaugueUI = GameObject.Find("UI").transform.Find("GaugeBg").gameObject;
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         bool isBox = false;
         if (Boxes != null)
@@ -28,13 +29,26 @@ public class Grab : MonoBehaviour {
                 {
                     isBox = true;
                     target = B;
+                    GrabButtonAni.SetActive(true);
                     GrabButton.SetActive(true);//상자 들기 버튼 활성화
                 }
             }
-            if (!isBox) { target = null; GrabButton.SetActive(false); } //버튼 비활성화
+            if (!isBox) {
+                target = null;
+                GrabButtonAni.SetActive(false);
+                GrabButton.SetActive(false);
+                gaugueUI.SetActive(false);
+            } //버튼 비활성화
         }
-        else print("박스없음");
-        
+        else
+        {
+            //게이지 UI가 있다면 해제
+            gaugueUI.SetActive(false);
+        }
+    }
+    public void AddBoxList(GameObject box)
+    {
+        Boxes.Add(box);
     }
 
     public void GrabMode()

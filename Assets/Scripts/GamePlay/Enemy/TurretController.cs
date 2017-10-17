@@ -12,7 +12,7 @@ public class TurretController : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        healthBar = transform.FindChild("EnemyCanvas").FindChild("HealthBG").FindChild("Health").GetComponent<Image>();
+        healthBar = transform.Find("EnemyCanvas").Find("HealthBG").Find("Health").GetComponent<Image>();
     }
 
     // Update is called once per frame

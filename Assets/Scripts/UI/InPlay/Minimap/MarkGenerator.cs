@@ -19,10 +19,9 @@ public class MarkGenerator : MonoBehaviour {
         int StageLevel = int.Parse(SceneData.SceneLevelName);
         //
         Npcs = GameObject.FindGameObjectsWithTag("NPC_R" + StageLevel);//NPC_Rn테그를 가진 게임오브젝트 배열을 리턴
-        Boxes = GameObject.FindGameObjectsWithTag("Box_R" + StageLevel);
+        Boxes = GameObject.FindGameObjectsWithTag("Box");
         Destination = GameObject.Find("Area_R" + StageLevel);
         //Enemys = GameObject.FindGameObjectsWithTag("ENEMY_R" + StageLevel);
-        print(Npcs.Length+"입ㄴ다");
         if (Npcs.Length > 0)
         {
             foreach (GameObject Npc in Npcs)
@@ -45,6 +44,12 @@ public class MarkGenerator : MonoBehaviour {
             temp.GetComponent<MinimapMark>().target = Destination;
         }
 
+    }
+
+    public void BoxGened(GameObject Box)//아이템이 새로 추가되어 미니맵에 표시할 때 호출한다.
+    {
+        GameObject temp = Instantiate(BoxMark, new Vector3(0, 1248.5f, 0), Quaternion.identity);
+        temp.GetComponent<MinimapMark>().target = Box;
     }
     /*
     void EnemyDead(GameObject sender)//박스제거

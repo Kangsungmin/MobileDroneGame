@@ -33,7 +33,7 @@ public class SCG_Base_Controller : MonoBehaviour
 	//Do something
 		mat01.color = baseColor;
 		mat02.color = wallsColor; 
-		textEditor.text = baseText;
+		//textEditor.text = baseText;
 		textEditor.color = textColor;
 		pointLight.color = lightColor;
 		pointLight.intensity = lightIntensity;

@@ -19,7 +19,7 @@ public class Inventory : MonoBehaviour {
 
         slotAmount = 6;//총 슬롯 수
         inventoryPanel = GameObject.Find("InventoryPanel");
-        slotPanel = inventoryPanel.transform.FindChild("SlotPanel").gameObject;
+        slotPanel = inventoryPanel.transform.Find("SlotPanel").gameObject;
         for (int i = 0; i<slotAmount; i++)
         { 
             items.Add(new Item());//비어있는 아이템 추가

@@ -29,10 +29,6 @@ public class Spliter : Drone
         bodyDir = Vector3.zero;
         int StageLevel = int.Parse(SceneData.SceneLevelName);
     }
-    /*
-    bool getbooltime() { return this.bool_time; }
-    void setbooltime(bool time) { this.bool_time = time; }
-    */
     //=============================Update함수(프레임마다 호출) [시작]=============================
     void Update()
     {
@@ -129,46 +125,7 @@ public class Spliter : Drone
             DroneAnimator.SetBool("idle", AnimatorState);
         }
     }
-
-    //=============================드론 타겟 추척[시작]=============================
-    /*
-    void UpdateTarget()
-    {
-        if(enemies.Length != 0)
-        {
-            float shortDistance = Mathf.Infinity;
-            GameObject nearestEnemy = null;
-            foreach (GameObject enemy in enemies)//모든 enemies에 대해
-            {
-                float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);//enemy와의 거리
-                bool enemyRender = enemy.GetComponent<Renderer>().isVisible; //enemy가 카메라 범위 내에 있는가
-                if (distanceToEnemy < shortDistance && enemyRender)//가까이 있고 카메라에 잡혀있다면,
-                {
-                    shortDistance = distanceToEnemy;
-                    nearestEnemy = enemy;//가장 가까운 적 갱신
-                }
-            }
-            if (nearestEnemy != null && shortDistance <= range)//가장 가까운 적이 범위안에 있을 때,
-            {
-                //nearestEnemy.GetComponent<EnemyAnim>().Targeted();//타겟에게 타게팅 되었음을 알림. @타겟이 없어졌을때 에러남 
-                target = nearestEnemy.transform;
-                EnemyLastPos = target.position;//적군의 마지막 최근 위치를 저장한다.
-                if (Arming.AttackMode) { AutoAim = true; }
-                else { AutoAim = false;}
-            }
-            else//범위 내에 타겟이 없을 때,
-            {
-                target = null;
-            }
-        }
-    }
-    */
-    //=============================드론 타겟 추척[끝]=============================
-
-
-    //=============================드론 공격 반경정의[시작]=============================
-
-    //=============================드론 공격 반경정의[끝]=============================
+    
 
     //=============================드론 추력 조작[시작]=============================
     //*파라미터로는 1 ~ -1이 넘어온다.
@@ -226,10 +183,6 @@ public class Spliter : Drone
                 print("피자를 주문했는데 아직 안왔어...");
             }
         }
-        else if (col.tag == "Box")
-        {
-
-        }
 
     }
 
@@ -276,7 +229,17 @@ public class Spliter : Drone
     //=============================연료 충전함수[시작]=============================
     public override void getFuel()
     {
-        if (Fuel < 100) Fuel += 20;
+        if (Fuel < 100)
+        {
+            if (Fuel > 80)
+            {
+                Fuel = 100;
+            }
+            else
+            {
+                Fuel += 20;
+            }
+        }
     }
     //=============================연료 충전함수[끝]===============================
 

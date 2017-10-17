@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using System.Diagnostics;
 
 public class UIscripts : MonoBehaviour {
-    GameObject Player;
+    GameObject Player, PlayEnvironment;
     public GameObject damagedImg, PauseMenu;
     public GameObject MissonBackground, Title_Mission, Title_Clear, SubTitle, MissionClearPanel, MissionPanelButtons;
     public GameObject RatingView, MissionClearView;
@@ -16,7 +16,7 @@ public class UIscripts : MonoBehaviour {
     public Text MissionClearEnglish, MissionClearKorean;
     //스톱워치
     bool MissonEnd;
-    public static Stopwatch stopwatch;
+    //public static Stopwatch stopwatch;
     public static float CountDown = -1.0f;
     public Text TimeView;
     IEnumerator corutine;
@@ -27,40 +27,45 @@ public class UIscripts : MonoBehaviour {
     void Start ()
     {
         Player = GameObject.FindGameObjectWithTag("Player");
-        stopwatch = new Stopwatch();
-        stopwatch.Start();
-        
-        healthBar = transform.FindChild("HP").FindChild("HP_bar").GetComponent<Image>();
-        fuelBar = transform.FindChild("FUEL").FindChild("Fuel_bar").GetComponent<Image>();
+        PlayEnvironment = GameObject.Find("PlayEnvironment");
+        //stopwatch = new Stopwatch();
+        //stopwatch.Start();
+
+        healthBar = transform.Find("HP").Find("HP_bar").GetComponent<Image>();
+        fuelBar = transform.Find("FUEL").Find("Fuel_bar").GetComponent<Image>();
         damagedImg.SetActive(false);
     }
     // Update is called once per frame
     void Update () {
-        health = Player.gameObject.GetComponent<Drone>().Hp;
-        fuel = Player.gameObject.GetComponent<Drone>().Fuel;
-        healthBar.fillAmount = (float)health / (float)maxHealth;
-        fuelBar.fillAmount = (float)fuel / (float)maxFuel;
-        if ((int)CountDown == 0 || health <= 0.0f || fuel <= 0.0f)//미션 실패
+        if (!Playenv.GameOver)
         {
-            MissionEnd(0, 0, 0);//게임 종료
-            MissionClearEnglish.text = "Fail";
-            MissionClearKorean.text = "실패";
-            GameObject.Find("PlayEnvironment").SendMessage("MissionFail");
-        }
-        else if (MissonEnd)//미션 종료시
-        {
-            Player.GetComponent<Rigidbody>().isKinematic = true;//드론 멈춤
-            Player.GetComponent<Drone>().DronePowerOn = false;
-        }
-        else CountDown -= Time.deltaTime;//1초씩 감소
+            health = Player.gameObject.GetComponent<Drone>().Hp;
+            fuel = Player.gameObject.GetComponent<Drone>().Fuel;
+            healthBar.fillAmount = (float)health / (float)maxHealth;
+            fuelBar.fillAmount = (float)fuel / (float)maxFuel;
+            if ((int)CountDown == 0 || health <= 0.0f || fuel <= 0.0f)//게임종료
+            {
+                //PlayEnvironment에 제한시간 종료 알림.
+                PlayEnvironment.SendMessage("GameEnd");
+            }
+            else if (MissonEnd)//미션 종료시
+            {
+                Player.GetComponent<Rigidbody>().isKinematic = true;//드론 멈춤
+                Player.GetComponent<Drone>().DronePowerOn = false;
+            }
+            else CountDown -= Time.deltaTime;//1초씩 감소
 
-        TimeView.text = (int)CountDown + "초 남았습니다.";
-        //TimeView.GetComponent<Text>().text = stopwatch.Elapsed.Minutes + " : " + stopwatch.Elapsed.Seconds + " : " + stopwatch.Elapsed.Milliseconds / 100;
+            TimeView.text = (int)CountDown + "초 남았습니다.";
+            if (CountDown < 20) TimeView.color = Color.red;
+            else TimeView.color = Color.white;
+            //TimeView.GetComponent<Text>().text = stopwatch.Elapsed.Minutes + " : " + stopwatch.Elapsed.Seconds + " : " + stopwatch.Elapsed.Milliseconds / 100;
+        }
+
     }
 
     public void MissionEnd(int Rate, int getExp, int amountMoney)
     {
-        stopwatch.Reset();
+        //stopwatch.Reset();
         //1.백그라운드 활성화
         MissonBackground.SetActive(true);
         //2.Mission & Subtitle 활성화 

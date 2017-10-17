@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BeginnerDrone : Drone {
 
-    public ParticleSystem grabEffect;
+    public ParticleSystem grabEffect, GoalInEffect;
     float endX, endZ;
     void Awake()
     {
@@ -19,8 +19,8 @@ public class BeginnerDrone : Drone {
         moveJoystickRight = UIManager.transform.Find("VirtualJoystickRight").GetComponent<VirtualJS_Right>();
         Claw = transform.Find("Claw");
         grabEffect = transform.Find("GrabEffect").Find("Particle System").GetComponent<ParticleSystem>();
-        //GoalInEffect = transform.Find("FixRotation").Find("GoalInEffect").Find("Particle System").GetComponent<ParticleSystem>();
-        //GoalInEffect.Stop();
+        GoalInEffect = transform.Find("GoalInEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        GoalInEffect.Stop();
         grabEffect.Stop();
         AnimatorState = true;//드론 에니메이션 상태
         wingDir = new Vector3(270, 180, 0);
@@ -274,7 +274,17 @@ public class BeginnerDrone : Drone {
     //=============================연료 충전함수[시작]=============================
     public override void getFuel()
     {
-        if (Fuel < 100) Fuel += 20;
+        if (Fuel < 100)
+        {
+            if (Fuel > 80)
+            {
+                Fuel = 100;
+            }
+            else
+            {
+                Fuel += 20;
+            }
+        }
     }
     //=============================연료 충전함수[끝]===============================
 
@@ -346,12 +356,12 @@ public class BeginnerDrone : Drone {
     public override void DropSomthing()
     {
 
-        if (transform.GetChild(8) != null)
+        if (transform.GetChild(9) != null)
         {
-            GetComponent<Rigidbody>().mass -= transform.GetChild(8).GetComponent<Rigidbody>().mass;
-            transform.GetChild(8).GetComponent<BoxCollider>().enabled = true;
-            transform.GetChild(8).GetComponent<Rigidbody>().isKinematic = false;
-            transform.GetChild(8).parent = null;//물건 부모해제
+            GetComponent<Rigidbody>().mass -= transform.GetChild(9).GetComponent<Rigidbody>().mass;
+            transform.GetChild(9).GetComponent<BoxCollider>().enabled = true;
+            transform.GetChild(9).GetComponent<Rigidbody>().isKinematic = false;
+            transform.GetChild(9).parent = null;//물건 부모해제
         }
         Claw.GetComponent<BoxCollider>().size = new Vector3(0, 0, 0);
         Claw.transform.localPosition = new Vector3(0, 0, 0);
@@ -366,7 +376,7 @@ public class BeginnerDrone : Drone {
     }
     public void GoalInParticlePlay()
     {
-        //GoalInEffect.Play();
+        GoalInEffect.Play();
     }
     /*
     IEnumerator ParticleStop(float time)

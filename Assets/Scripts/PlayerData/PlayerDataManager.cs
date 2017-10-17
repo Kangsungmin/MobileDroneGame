@@ -23,6 +23,8 @@ public class PlayerDataManager : MonoBehaviour
         playerDataManager = this;
         //PlayerPrefs.DeleteAll();
         //초기화 할 때 주석 제거
+        //PlayerPrefs.SetInt("spanner", 10);
+        //PlayerPrefs.SetInt("money", 5000);
         /*
         PlayerPrefs.SetInt("spanner",5);
         PlayerPrefs.SetInt("money", 500);
@@ -34,8 +36,8 @@ public class PlayerDataManager : MonoBehaviour
         if (!PlayerPrefs.HasKey("level"))
         {
             //=====초기 사용자 세팅=========
-            PlayerPrefs.SetInt("spanner",5);
-            PlayerPrefs.SetInt("money", 600);
+            PlayerPrefs.SetInt("spanner",10);
+            PlayerPrefs.SetInt("money", 300);
             PlayerPrefs.SetInt("level", 1);
             PlayerPrefs.SetInt("exp", 0);
             PlayerPrefs.SetInt("nowModel", 0);//현재 사용중인 모델 '1'
@@ -63,7 +65,7 @@ public class PlayerDataManager : MonoBehaviour
         if (Loadmemory[0] && Loadmemory[0] && Loadmemory[0] && Loadmemory[0] && Loadmemory[0] && Loadmemory[0])
         {
             spanner = PlayerPrefs.GetInt("spanner");
-            SpannerView.text = spanner.ToString() + "/5";
+            SpannerView.text = spanner.ToString() + "/10";
         }
 
     }

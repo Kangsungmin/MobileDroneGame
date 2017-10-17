@@ -6,7 +6,7 @@ using System.Timers;
 
 public class Carmine : Drone
 {
-    public ParticleSystem grabEffect;
+    public ParticleSystem grabEffect, GoalInEffect;
     float endX, endZ;
     void Awake()
     {
@@ -22,6 +22,8 @@ public class Carmine : Drone
         Claw = transform.Find("Claw");
         grabEffect = transform.Find("FixRotation").Find("GrabEffect").Find("Particle System").GetComponent<ParticleSystem>();
         grabEffect.Stop();
+        GoalInEffect = transform.Find("FixRotation").Find("GoalInEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        GoalInEffect.Stop();
         AnimatorState = true;//드론 에니메이션 상태
         wingDir = new Vector3(270, 180, 0);
         bodyDir = Vector3.zero;
@@ -276,7 +278,17 @@ public class Carmine : Drone
     //=============================연료 충전함수[시작]=============================
     public override void getFuel()
     {
-        if (Fuel < 100) Fuel += 20;
+        if (Fuel < 100)
+        {
+            if (Fuel > 80)
+            {
+                Fuel = 100;
+            }
+            else
+            {
+                Fuel += 20;
+            }
+        }
     }
     //=============================연료 충전함수[끝]===============================
 
@@ -340,7 +352,9 @@ public class Carmine : Drone
         transform.position = new Vector3(targetObject.transform.position.x, targetObject.transform.position.y + (size.y * 0.6f), targetObject.transform.position.z);
         targetObject.transform.SetParent(transform);
         Claw.GetComponent<BoxCollider>().size = size;
+        Claw.transform.position = targetObject.transform.position;
         OnGrab.grabState = "Using";
+        GetComponent<Rigidbody>().mass += targetObject.GetComponent<Rigidbody>().mass;//드론의 무게를 증가시킨다.
         //파티클 실행
         GrabParticlePlay();
     }
@@ -349,11 +363,13 @@ public class Carmine : Drone
 
         if (transform.GetChild(3) != null)
         {
+            GetComponent<Rigidbody>().mass -= transform.GetChild(3).GetComponent<Rigidbody>().mass;
             transform.GetChild(3).GetComponent<BoxCollider>().enabled = true;
             transform.GetChild(3).GetComponent<Rigidbody>().isKinematic = false;
             transform.GetChild(3).parent = null;//물건 부모해제
         }
         Claw.GetComponent<BoxCollider>().size = new Vector3(0, 0, 0);
+        Claw.transform.localPosition = new Vector3(0, 0, 0);
         //Claw.transform.position = new Vector3(transform.position.x, transform.position.y - 0.45f, transform.position.z);
     }
     public void GrabParticlePlay()
@@ -362,6 +378,10 @@ public class Carmine : Drone
         //1.5초 후에 stop예약
         //IEnumerator coroutine = ParticleStop(1.5f);
         //StartCoroutine(coroutine);
+    }
+    public void GoalInParticlePlay()
+    {
+        GoalInEffect.Play();
     }
     IEnumerator ParticleStop(float time)
     {
