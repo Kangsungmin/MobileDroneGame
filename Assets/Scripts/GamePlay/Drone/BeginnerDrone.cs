@@ -2,41 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BeginnerDrone : Drone {
-
-    public ParticleSystem grabEffect, GoalInEffect;
+public class BeginnerDrone : Drone
+{
+    public ParticleSystem grabEffect, GoalInEffect, ElecEffect;
     float endX, endZ;
+
     void Awake()
     {
+        Speed = 120;
         thisRB = GetComponent<Rigidbody>();
     }
     void Start()
     {
         playEnvironment = GameObject.Find("PlayEnvironment");
-        InventoryManager = GameObject.Find("Inventory");
         UIManager = GameObject.Find("UI");
         moveJoystickLeft = UIManager.transform.Find("VirtualJoystickLeft").GetComponent<VirtualJS_Left>();
         moveJoystickRight = UIManager.transform.Find("VirtualJoystickRight").GetComponent<VirtualJS_Right>();
         Claw = transform.Find("Claw");
-        grabEffect = transform.Find("GrabEffect").Find("Particle System").GetComponent<ParticleSystem>();
-        GoalInEffect = transform.Find("GoalInEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        grabEffect = transform.Find("ParticlePack").Find("GrabEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        GoalInEffect = transform.Find("ParticlePack").Find("GoalInEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        ElecEffect = transform.Find("ParticlePack").Find("ElectronicEffect").Find("Particle System").GetComponent<ParticleSystem>();
         GoalInEffect.Stop();
         grabEffect.Stop();
+        ElecEffect.Stop();
         AnimatorState = true;//드론 에니메이션 상태
         wingDir = new Vector3(270, 180, 0);
         bodyDir = Vector3.zero;
         int StageLevel = int.Parse(SceneData.SceneLevelName);
     }
-    /*
-    bool getbooltime() { return this.bool_time; }
-    void setbooltime(bool time) { this.bool_time = time; }
-    */
     //=============================Update함수(프레임마다 호출) [시작]=============================
     void Update()
     {
         bodyDir = Vector3.zero;
 
-        float amtMove = Speed * Time.smoothDeltaTime;//프레임당 이동 거리
+        //float amtMove = Speed * Time.smoothDeltaTime;//프레임당 이동 거리
         //float amtRot = RotSpeed * Time.smoothDeltaTime;//드론 z축기준 회전 속도
         float keyUp = Input.GetAxis("Up");
         //=============================드론 에니메이션[시작]=============================
@@ -53,7 +52,6 @@ public class BeginnerDrone : Drone {
                 DronePowerOn = true;
                 droneStarting = true;
             }
-
         }
         //=============================드론 시동[끝]===============================
 
@@ -69,12 +67,11 @@ public class BeginnerDrone : Drone {
             bodyDir.y = currentY;
 
             transform.eulerAngles = bodyDir;//Drone 오브젝트 좌우 회전 적용
-            if ((moveJoystickLeft.Vertical() != 0.0f) || (moveJoystickRight.Vertical() != 0.0f)) ; //Arming.AttackMode = false;
+            //if ((moveJoystickLeft.Vertical() != 0.0f) || (moveJoystickRight.Vertical() != 0.0f)) ; //Arming.AttackMode = false;
 
             //좌측 조이스틱에 따른 날개 회전 애니메이션은 DroneAnim스크립트에서 처리한다.
             if (flyDelay) StartCoroutine("AddCtrlToDrone", moveJoystickRight.Vertical()); //상하강 버튼을 누를시
-            if (fuelDelay) StartCoroutine("fuelControl");
-            //초당 힘을 가하도록 한다.
+
 
             //애니메이션
             if (moveJoystickLeft.Horizontal() + moveJoystickLeft.Vertical() + moveJoystickRight.Vertical() != 0.0f) AnimatorState = false;
@@ -82,14 +79,6 @@ public class BeginnerDrone : Drone {
         }
         //=============================드론 조작[끝]===============================
 
-        //=============================드론 죽은지 체크[시작]===========================
-        /*
-        if (Rb.position.y <= Water.gameObject.GetComponent<Water_Time>().getWaterPosition())
-        {
-            GameOver = true;
-            Drone_ON = false;
-        }*/
-        //=============================드론 죽은지 체크[끝]=============================
 
         //============================이동구간[시작]===================================
         if (Vector3.Distance(transform.position, Vector3.zero) < 242.0f)
@@ -116,8 +105,9 @@ public class BeginnerDrone : Drone {
         if (DronePowerOn)
         {
             thisRB.AddForce(Vector3.up * Thrust); // Drone의 위(y축)으로 추력만큼 힘을 가한다.
-            thisRB.AddRelativeForce(Vector3.forward * 70 * moveJoystickLeft.Vertical());
+            thisRB.AddRelativeForce(Vector3.forward * Speed * moveJoystickLeft.Vertical());
         }
+        if (fuelDelay) StartCoroutine("fuelControl");
     }
 
     void Animations()
@@ -128,45 +118,6 @@ public class BeginnerDrone : Drone {
         }
     }
 
-    //=============================드론 타겟 추척[시작]=============================
-    /*
-    void UpdateTarget()
-    {
-        if(enemies.Length != 0)
-        {
-            float shortDistance = Mathf.Infinity;
-            GameObject nearestEnemy = null;
-            foreach (GameObject enemy in enemies)//모든 enemies에 대해
-            {
-                float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);//enemy와의 거리
-                bool enemyRender = enemy.GetComponent<Renderer>().isVisible; //enemy가 카메라 범위 내에 있는가
-                if (distanceToEnemy < shortDistance && enemyRender)//가까이 있고 카메라에 잡혀있다면,
-                {
-                    shortDistance = distanceToEnemy;
-                    nearestEnemy = enemy;//가장 가까운 적 갱신
-                }
-            }
-            if (nearestEnemy != null && shortDistance <= range)//가장 가까운 적이 범위안에 있을 때,
-            {
-                //nearestEnemy.GetComponent<EnemyAnim>().Targeted();//타겟에게 타게팅 되었음을 알림. @타겟이 없어졌을때 에러남 
-                target = nearestEnemy.transform;
-                EnemyLastPos = target.position;//적군의 마지막 최근 위치를 저장한다.
-                if (Arming.AttackMode) { AutoAim = true; }
-                else { AutoAim = false;}
-            }
-            else//범위 내에 타겟이 없을 때,
-            {
-                target = null;
-            }
-        }
-    }
-    */
-    //=============================드론 타겟 추척[끝]=============================
-
-
-    //=============================드론 공격 반경정의[시작]=============================
-
-    //=============================드론 공격 반경정의[끝]=============================
 
     //=============================드론 추력 조작[시작]=============================
     //*파라미터로는 1 ~ -1이 넘어온다.
@@ -174,7 +125,8 @@ public class BeginnerDrone : Drone {
     {
         flyDelay = false;
         if (DronePowerOn == false && Up > 0) { Thrust = 40; DronePowerOn = true; }//드론 첫 동작시 초기 모터속도 1650
-        if (Thrust > 80 && Up > 0) ;
+
+        if (Thrust > 80 && Up > 0) {; }
         else if (DronePowerOn && Up == 0.0f) { Thrust = hovering_Thrust; }
         else//드론에 추력을 가할 때,
         {
@@ -204,29 +156,6 @@ public class BeginnerDrone : Drone {
         else if (col.tag == "Item")//피자아이템을 획득
         {
             Destroy(col.gameObject);
-            //col.transform.gameObject.SetActive(false);
-            GetItem(col.gameObject);
-        }
-        else if (col.tag.Contains("NPC_R"))//미션 관련 NPC를 만났을 때,
-        {
-            if (InventoryManager.GetComponent<Inventory>().isItem(0))//id(0)은 피자.
-            {
-                InventoryManager.GetComponent<Inventory>().RemoveItem(0);//피자 아이템을 제거한다.
-                print("피자배달 완료");
-                //Playenv에 메세지 전달
-                col.gameObject.GetComponent<Animator>().SetInteger("State", 2);//NPC애니메이션 설정
-                col.tag = "NPC";//태그 수정
-                playEnvironment.GetComponent<Playenv>().MissionCount--;
-                print(playEnvironment.GetComponent<Playenv>().MissionCount);
-            }
-            else
-            {
-                print("피자를 주문했는데 아직 안왔어...");
-            }
-        }
-        else if (col.tag == "Box")
-        {
-
         }
 
     }
@@ -241,19 +170,23 @@ public class BeginnerDrone : Drone {
         }
         else
         {
-            if (thisRB.velocity.magnitude < 1.3f)
+            float v = thisRB.velocity.magnitude;
+            if (v > 10.0f)
             {
-
+                //Hit((int) (v * 0.5f) );
+                DropSomthing();
+            }
+            else if (thisRB.velocity.magnitude > 2.5f)
+            {
+                //Hit((int)(v * 0.5f));
             }
             else
             {
-                Hit((int)thisRB.velocity.magnitude);
+                //약한충돌로 무시한다.
             }
         }
     }
     //=============================드론 충돌 판정[끝]===============================
-
-
 
     //=============================드론 연료함수[시작]=============================
     IEnumerator fuelControl()//연료 감소 메소드
@@ -264,7 +197,7 @@ public class BeginnerDrone : Drone {
             GameOver = true;//게임 종료
             DronePowerOn = false;
         }
-        else if (Thrust > 20 && DronePowerOn) Fuel--;       //연료가 남아있을 때 감소시킨다.
+        else if (Thrust > 20 && DronePowerOn) Fuel -= 0.5f;       //연료가 남아있을 때 감소시킨다.
         if (Fuel <= 0) GameOver = true;
         yield return new WaitForSeconds(1.0f);//해당 메소드에 1초 지연을 시킨다.
         fuelDelay = true;
@@ -282,23 +215,13 @@ public class BeginnerDrone : Drone {
             }
             else
             {
-                Fuel += 20;
+                Fuel += 15;
             }
         }
+        ElecEffect.Play();
     }
     //=============================연료 충전함수[끝]===============================
 
-    //=============================프로펠러 회전[시작]=============================
-    /*
-    void SpinProp(float AmtPropRot)
-    {
-        prop1.transform.Rotate(Vector3.up * AmtPropRot); // 예로 Vector3.up*Time.deltaTime 은 초당 1도 회전
-        prop3.transform.Rotate(Vector3.up * AmtPropRot);
-        prop2.transform.Rotate(Vector3.up * AmtPropRot * -1);
-        prop4.transform.Rotate(Vector3.up * AmtPropRot * -1);
-    }
-    */
-    //=============================프로펠러 회전[끝]===============================
 
     //=============================드론 공격받음[시작]=============================
     public override void Hit(int damage)
@@ -312,28 +235,6 @@ public class BeginnerDrone : Drone {
         }
     }
     //=============================드론 공격받음[끝]===============================
-    public override void GetItem(GameObject item)
-    {
-        switch (item.name)
-        {
-            case "pizza":
-                InventoryManager.GetComponent<Inventory>().AddItem(0);
-                break;
-            case "Brushed_Motor":
-                InventoryManager.GetComponent<Inventory>().AddItem(1);
-                break;
-            case "Propeller":
-                InventoryManager.GetComponent<Inventory>().AddItem(2);
-                break;
-        }
-    }
-
-    public void SmoothLookAt(Vector3 T)
-    {
-        transform.rotation = Quaternion.RotateTowards(transform.rotation,
-            Quaternion.LookRotation(-transform.position + T),
-              Time.deltaTime * 50);
-    }
 
     public override void GrabSomthing(GameObject targetObject)//물건을 집는 메소드
     {
@@ -355,18 +256,18 @@ public class BeginnerDrone : Drone {
     }
     public override void DropSomthing()
     {
-
-        if (transform.GetChild(9) != null)
+        if (transform.childCount >= 9)
         {
-            GetComponent<Rigidbody>().mass -= transform.GetChild(9).GetComponent<Rigidbody>().mass;
-            transform.GetChild(9).GetComponent<BoxCollider>().enabled = true;
-            transform.GetChild(9).GetComponent<Rigidbody>().isKinematic = false;
-            transform.GetChild(9).parent = null;//물건 부모해제
+            GetComponent<Rigidbody>().mass -= transform.GetChild(8).GetComponent<Rigidbody>().mass;
+            transform.GetChild(8).GetComponent<BoxCollider>().enabled = true;
+            transform.GetChild(8).GetComponent<Rigidbody>().isKinematic = false;
+            transform.GetChild(8).parent = null;//물건 부모해제
         }
         Claw.GetComponent<BoxCollider>().size = new Vector3(0, 0, 0);
         Claw.transform.localPosition = new Vector3(0, 0, 0);
-        //Claw.transform.position = new Vector3(transform.position.x, transform.position.y - 0.45f, transform.position.z);
     }
+
+
     public void GrabParticlePlay()
     {
         grabEffect.Play();
@@ -378,14 +279,7 @@ public class BeginnerDrone : Drone {
     {
         GoalInEffect.Play();
     }
-    /*
-    IEnumerator ParticleStop(float time)
-    {
-        yield return new WaitForSeconds(time);
-        Debug.Log("파티클 종료");
-        grabEffect.Stop();
-    }
-    */
+
     Vector3[] rayCasting()
     {
         Vector3[] val = new Vector3[2];
@@ -410,4 +304,6 @@ public class BeginnerDrone : Drone {
         }
         else return val;
     }
+
+
 }

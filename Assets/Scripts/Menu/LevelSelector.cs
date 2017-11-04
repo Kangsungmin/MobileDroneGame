@@ -16,10 +16,28 @@ public class LevelSelector : MonoBehaviour {
             Level = Name.Substring(index + 1, 2);
             //씬데이터에 저장
             SceneData.sceneData.LoadStage(MapName, Level);
-            PlayerDataManager.spanner--;//스패너 감소
-            PlayerPrefs.SetInt("spanner", PlayerDataManager.spanner);
+			StartCoroutine(Update_Spanner_DB(PlayerDataManager.spanner - 1)); // 스페너 감소
             fader.FadeTo(MapName);
         }
        
     }
+
+	IEnumerator Update_Spanner_DB (int spanner_num) {
+
+		WWWForm form = new WWWForm();
+		form.AddField("userIDPost", PlayerDataManager.userID);
+		form.AddField ("spannerNumPost", spanner_num);
+
+		WWW data = new WWW("http://13.124.188.186/spanner_updater.php", form);
+		yield return data;
+
+		string user_Data = data.text;
+
+		if (user_Data == "\n1") {
+			print("에코 1받고 spanner 채움");
+			PlayerDataManager.spanner = spanner_num;
+		} else {
+			Debug.Log ("Spanner update failed...");
+		}
+	}
 }

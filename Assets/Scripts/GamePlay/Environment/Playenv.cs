@@ -14,24 +14,27 @@ public class Playenv : MonoBehaviour
     UIscripts UIManager;
     public string MapName;
     public int StageLevel;
-    public int killCount = 0;
-    public GameObject MssionPanel;
-    public GameObject RatingView, MissionClearView;
+    public GameObject MissionPanel, RatingView, MissionClearView;
+    GameObject PlayerDrone;
     GameObject DroneBoxSearcher;
     public Text MissionExplainText;
     public static int SpawnBoxCount;
     public int MissionCount;//상자를 넣은 수.
+    public int AmountMoney;//획득한 돈
+    public List<int> NowGetParts = new List<int>();
     public static bool GameOver;
     public SceneFader fader;
     //박스아이템
-    public GameObject ItemBox;
+    public GameObject ItemBox, ItemCluster;
     public GameObject MiniMapMarkManager;
     //미션클리어UI
     public GameObject MissonBackground, Title_Mission, Title_Clear, SubTitle, MissionClearPanel;
     // Use this for initialization
     GameObject AllNpc, AllItems, AllSpwanArea;
-    GameObject[] thisRoundEnemys;
     GameObject DroneSpawn;
+    //=====튜토리얼 변수=======//
+    public GameObject TutorialArrow;
+    //=====튜토리얼 변수=======//
 
     void Awake(){
         Time.timeScale = 1;
@@ -47,9 +50,6 @@ public class Playenv : MonoBehaviour
         MapName = SceneData.MapName;//현재 맵 이름
         StageLevel = int.Parse(SceneData.SceneLevelName);//현재 스테이지 레벨
         Debug.Log("맵 이름 : " + MapName + "\n스테이지 레벨: " + StageLevel);
-        MssionPanel.SetActive(true);
-        
-
         //자신이 현재 선택한 드론을 생성한다.
         /*
          * ==============현재 스테이지에 필요한 오브젝트만 활성화 시킨다.[시작]================ 
@@ -73,69 +73,87 @@ public class Playenv : MonoBehaviour
             if (!StageSpawnArea.name.Equals("Stage" + StageLevel)) StageSpawnArea.gameObject.SetActive(false);
         }
         DroneSpawn = GameObject.Find("DroneSpawnArea");
-        GameObject PlayerDrone = Resources.Load("Prefabs/Drones/Drone_" + PlayerDataManager.nowUsingModel.Title) as GameObject;
-        Instantiate(PlayerDrone, DroneSpawn.transform.position, DroneSpawn.transform.rotation);
+        PlayerDrone = Resources.Load("Prefabs/Drones/Drone_" + PlayerDataManager.nowUsingModel.getTitle()) as GameObject;
+        PlayerDrone  = Instantiate(PlayerDrone, DroneSpawn.transform.position, DroneSpawn.transform.rotation);
         //==============현재 스테이지에 필요한 오브젝트만 활성화 시킨다.[끝]==================
 
     }
     void Start()
     {
-        DroneBoxSearcher = GameObject.Find("Claw");
+        DroneBoxSearcher = PlayerDrone.transform.Find("Claw").gameObject;
         switch (StageLevel)
         {
             case 1:
                 //미션 설명
-                UIscripts.CountDown = 70.0f;
-                MissionExplainText.text = "박스 1개를 지정된 구역으로 옮기세요.";
+                UIscripts.CountDown = 300.0f;
+                GameObject obj = GameObject.FindGameObjectWithTag("Box");
+                DroneBoxSearcher.SendMessage("AddBoxList", obj);//Grab스크립트 Box리스트에 추가
+                //튜토리얼 설명을 모두 끝내면 가이드 화살표 드론에 생성
+                TutorialArrow = Instantiate(TutorialArrow, DroneSpawn.transform.position, DroneSpawn.transform.rotation);
                 break;
             case 2:
-                UIscripts.CountDown = 60.0f;
+                MissionPanel.SetActive(true);
+                UIscripts.CountDown = 90.0f;
                 MissionExplainText.text = "제한시간(60초)동안 박스를 지정된 구역으로 최대한 옮기세요.";
                 break;
-                /*
-            case 3:
-                UIscripts.CountDown = 120.0f;
-                MissionExplainText.text = "피자를 여러 사람에게 배달하세요.";
-                MissionCount = 3;
-                //현재 스테이지에 맞는 NPC 생성
-                break;
-            case 4:
-                UIscripts.CountDown = 90.0f;
-                MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
-                MissionCount = 2;
-                break;
-            case 5:
-                UIscripts.CountDown = 120.0f;
-                MissionExplainText.text = "박스를 지정된 구역으로 옮기세요.";
-                MissionCount = 3;
-                break;
-                */
         }
-
-        
     }
 
     void Update()
     {
-        //현재 맵에 gen된 상자의 수를 확인한다. 일정 수 이하면 박스를 랜덤한 맵 위치에 생성한다.
-        if(SpawnBoxCount < 20)
+        if (StageLevel != 1)
         {
-            Vector3 BoxSpawnPos = new Vector3(Random.Range(-170.0f, 170.0f),79.0f,Random.Range(-170.0f, 170.0f));
-            GameObject obj = Instantiate(ItemBox, BoxSpawnPos, Quaternion.identity);//랜덤한 위치에 박스 생성
-            DroneBoxSearcher.SendMessage("AddBoxList", obj);//Grab스크립트 Box리스트에 추가
-            MiniMapMarkManager.SendMessage("BoxGened", obj);//미니맵에도 박스 추가
-            SpawnBoxCount++;
+            if (SpawnBoxCount < 20)
+            {
+                //현재 맵에 gen된 상자의 수를 확인한다. 일정 수 이하면 박스를 랜덤한 맵 위치에 생성한다.
+                Vector3 BoxSpawnPos = new Vector3(Random.Range(-170.0f, 170.0f), 79.0f, Random.Range(-170.0f, 170.0f));
+                GameObject obj = Instantiate(ItemBox, BoxSpawnPos, Quaternion.identity);//랜덤한 위치에 박스 생성
+                obj.name = "Box";
+                DroneBoxSearcher.SendMessage("AddBoxList", obj);//Grab스크립트 Box리스트에 추가
+                MiniMapMarkManager.SendMessage("BoxGened", obj);//미니맵에도 박스 추가
+                SpawnBoxCount++;
+
+                Vector3 ItemClusterSpawnPos = new Vector3(Random.Range(-170.0f, 170.0f), 79.0f, Random.Range(-170.0f, 170.0f));
+                obj = Instantiate(ItemCluster, ItemClusterSpawnPos, Quaternion.identity);//랜덤한 위치에 박스 생성
+                obj.name = "ItemCluster";
+            }
+        }
+        else//튜토리얼 일때
+        {
+            if (MissionCount > 0)
+            {
+                GameEnd();
+                MissionCount = -1;
+            }
         }
     }
     //==============================미션 클리어[시작]====================================
-    public void MissionEnd(int Rate, int getExp, int amountMoney)
+    public void MissionEnd(int Rate, int getExp, int amountMoney, List<int> getPartID)
     {
         //============보상[시작]=====================================================
-        PlayerDataManager.playerDataManager.AddExp(getExp);//현재 경험치 
-        PlayerDataManager.playerDataManager.IncreaseMoney(amountMoney);//얻은 돈
+		StartCoroutine (MissionClear_To_DB (getExp, amountMoney));
         //============보상[끝]==================================17.09.04 성민 최종수정
     }
     //==============================미션 클리어[끝]=============17.09.06 성민 최종수정
+
+	IEnumerator MissionClear_To_DB (int getExp, int amountMoney) 
+	{
+		WWWForm form = new WWWForm ();
+		form.AddField ("clearEXPPost", getExp);
+		form.AddField ("clearMoneyPost", amountMoney);
+		form.AddField ("userIDPost", PlayerDataManager.userID);
+
+		WWW data = new WWW ("http://13.124.188.186/mission_clear.php", form);
+		yield return data;
+
+		string user_Data = data.text;
+
+		if (user_Data == "1") {
+			PlayerDataManager.playerDataManager.AddExp(getExp);//현재 경험치 
+			PlayerDataManager.playerDataManager.IncreaseMoney(amountMoney);//얻은 돈
+		}
+	}
+
     public void GameEnd()
     {
         GameOver = true;//시간초과 게임 끝
@@ -146,62 +164,77 @@ public class Playenv : MonoBehaviour
             case 1:
                 //미션 완료 검사
                 {
+                    PlayerDrone.GetComponent<Rigidbody>().isKinematic = true;
                     int getScore, getExp, getMoney;
-                    if (MissionCount > 0)
-                    {
-                        getScore = 3;
-                        getExp = 0;
-                        getMoney = 10;
-                    }
-                    else
-                    {
-                        getScore = 0;
-                        getExp = 0;
-                        getMoney = 0;
-                    }
-                    UIManager.MissionEnd(getScore, getExp, getMoney); //점수,exp, money
-                    MissionEnd(getScore, getExp, getMoney);
+                    getScore = 3;
+                    getExp = 25;
+                    getMoney = 10;
+                    UIManager.MissionEnd(getScore, getExp, getMoney, NowGetParts); //점수,exp, money
+                    MissionEnd(getScore, getExp, getMoney, NowGetParts);
                     break;
                 }
             case 2:
                 //미션 완료 검사
                 {
-                    int getScore, getExp, getMoney;
+                    int getScore, getExp;
                     if (MissionCount > PlayerDataManager.level * 2) //유저 Lev*2 이상일 시 3최상
                     {
                         getScore = 3;
-                        getExp = 2 * MissionCount;
-                        getMoney = 10 * MissionCount;
+                        getExp = 5 * MissionCount;
                     }
-                    else if(MissionCount > PlayerDataManager.level * 1.5) //유저 Lev*1.5 이상일 시 2
+                    else if (MissionCount > PlayerDataManager.level * 1.5) //유저 Lev*1.5 이상일 시 2
                     {
                         getScore = 2;
-                        getExp = 2 * MissionCount;
-                        getMoney = 10 * MissionCount;
+                        getExp = 5 * MissionCount;
                     }
                     else if (MissionCount > 1) //1개이상 넣을 시
                     {
                         getScore = 1;
-                        getExp = 2 * MissionCount;
-                        getMoney = 10 * MissionCount;
+                        getExp = 5 * MissionCount;
                     }
                     else
                     {
                         getScore = 0;
                         getExp = 0;
-                        getMoney = 0;
                     }
-                    UIManager.MissionEnd(getScore, getExp, getMoney); //점수,exp, money
-                    MissionEnd(getScore, getExp, getMoney);
+                    UIManager.MissionEnd(getScore, getExp, AmountMoney, NowGetParts); //점수,exp, money
+                    MissionEnd(getScore, getExp, AmountMoney, NowGetParts);
                     break;
                 }
         }
     }
-    
 
+    public void ActiveArrowToDestination()
+    {
+        //튜토리얼 화살표를 재활성화 시키고 목적지를 향하게 한다.
+        TutorialArrow.SetActive(true);
+        TutorialArrow.SendMessage("ReTargeting", GameObject.Find("Area_R1"));
+    }
+    public void MissionCountPlus()
+    {
+        MissionCount++;
+        GameObject.Find("UI").SendMessage("PlayerNumBoxUpdate", MissionCount.ToString());
+    }
+    public void MoneyPlus(int getMoney)
+    {
+        AmountMoney += getMoney;
+        GameObject.Find("UI").SendMessage("PlayerNumCoinUpdate", AmountMoney.ToString());
+    }
+    public void AddParts(int[] PartIdList)
+    {
+        for (int i=0; i < PartIdList.Length; i++)
+        {
+            NowGetParts.Add( PartIdList[i] );
+            
+        }
+        for (int i=0; i< NowGetParts.Count; i++)
+        {
+            print("얻은 파츠 : " + NowGetParts[i]);
+        }
+    }
     public void ExplainOk()
     {
-        MssionPanel.SetActive(false);
+        MissionPanel.SetActive(false);
     }
 
     public void Pause()
@@ -220,7 +253,6 @@ public class Playenv : MonoBehaviour
     {
         print("게임 씬 호출");
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        
     }
 
 }

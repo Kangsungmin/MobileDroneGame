@@ -10,6 +10,7 @@ public class Carmine : Drone
     float endX, endZ;
     void Awake()
     {
+        Speed = 85;
         thisRB = GetComponent<Rigidbody>();
     }
     void Start()
@@ -118,7 +119,7 @@ public class Carmine : Drone
         if (DronePowerOn)
         {
             thisRB.AddForce(Vector3.up * Thrust); // Drone의 위(y축)으로 추력만큼 힘을 가한다.
-            thisRB.AddRelativeForce(Vector3.forward * 70 * moveJoystickLeft.Vertical());
+            thisRB.AddRelativeForce(Vector3.forward * Speed * moveJoystickLeft.Vertical());
         }
     }
 
@@ -129,54 +130,13 @@ public class Carmine : Drone
             DroneAnimator.SetBool("idle", AnimatorState);
         }
     }
-
-    //=============================드론 타겟 추척[시작]=============================
-    /*
-    void UpdateTarget()
-    {
-        if(enemies.Length != 0)
-        {
-            float shortDistance = Mathf.Infinity;
-            GameObject nearestEnemy = null;
-            foreach (GameObject enemy in enemies)//모든 enemies에 대해
-            {
-                float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);//enemy와의 거리
-                bool enemyRender = enemy.GetComponent<Renderer>().isVisible; //enemy가 카메라 범위 내에 있는가
-                if (distanceToEnemy < shortDistance && enemyRender)//가까이 있고 카메라에 잡혀있다면,
-                {
-                    shortDistance = distanceToEnemy;
-                    nearestEnemy = enemy;//가장 가까운 적 갱신
-                }
-            }
-            if (nearestEnemy != null && shortDistance <= range)//가장 가까운 적이 범위안에 있을 때,
-            {
-                //nearestEnemy.GetComponent<EnemyAnim>().Targeted();//타겟에게 타게팅 되었음을 알림. @타겟이 없어졌을때 에러남 
-                target = nearestEnemy.transform;
-                EnemyLastPos = target.position;//적군의 마지막 최근 위치를 저장한다.
-                if (Arming.AttackMode) { AutoAim = true; }
-                else { AutoAim = false;}
-            }
-            else//범위 내에 타겟이 없을 때,
-            {
-                target = null;
-            }
-        }
-    }
-    */
-    //=============================드론 타겟 추척[끝]=============================
-
-
-    //=============================드론 공격 반경정의[시작]=============================
-
-    //=============================드론 공격 반경정의[끝]=============================
-
     //=============================드론 추력 조작[시작]=============================
     //*파라미터로는 1 ~ -1이 넘어온다.
     IEnumerator AddCtrlToDrone(float Up)
     {
         flyDelay = false;
         if (DronePowerOn == false && Up > 0) { Thrust = 40; DronePowerOn = true; }//드론 첫 동작시 초기 모터속도 1650
-        if (Thrust > 80 && Up > 0) ;
+        if (Thrust > 85 && Up > 0) ;
         else if (DronePowerOn && Up == 0.0f) { Thrust = hovering_Thrust; }
         else//드론에 추력을 가할 때,
         {
@@ -207,24 +167,7 @@ public class Carmine : Drone
         {
             Destroy(col.gameObject);
             //col.transform.gameObject.SetActive(false);
-            GetItem(col.gameObject);
-        }
-        else if (col.tag.Contains("NPC_R"))//미션 관련 NPC를 만났을 때,
-        {
-            if (InventoryManager.GetComponent<Inventory>().isItem(0))//id(0)은 피자.
-            {
-                InventoryManager.GetComponent<Inventory>().RemoveItem(0);//피자 아이템을 제거한다.
-                print("피자배달 완료");
-                //Playenv에 메세지 전달
-                col.gameObject.GetComponent<Animator>().SetInteger("State", 2);//NPC애니메이션 설정
-                col.tag = "NPC";//태그 수정
-                playEnvironment.GetComponent<Playenv>().MissionCount--;
-                print(playEnvironment.GetComponent<Playenv>().MissionCount);
-            }
-            else
-            {
-                print("피자를 주문했는데 아직 안왔어...");
-            }
+            
         }
         else if (col.tag == "Box")
         {
@@ -317,21 +260,6 @@ public class Carmine : Drone
     }
     //=============================드론 공격받음[끝]===============================
 
-    public override void GetItem(GameObject item)
-    {
-        switch (item.name)
-        {
-            case "pizza":
-                InventoryManager.GetComponent<Inventory>().AddItem(0);
-                break;
-            case "Brushed_Motor":
-                InventoryManager.GetComponent<Inventory>().AddItem(1);
-                break;
-            case "Propeller":
-                InventoryManager.GetComponent<Inventory>().AddItem(2);
-                break;
-        }
-    }
 
     public void SmoothLookAt(Vector3 T)
     {
@@ -361,12 +289,12 @@ public class Carmine : Drone
     public override void DropSomthing()
     {
 
-        if (transform.GetChild(3) != null)
+        if (transform.childCount >= 5)
         {
             GetComponent<Rigidbody>().mass -= transform.GetChild(3).GetComponent<Rigidbody>().mass;
-            transform.GetChild(3).GetComponent<BoxCollider>().enabled = true;
-            transform.GetChild(3).GetComponent<Rigidbody>().isKinematic = false;
-            transform.GetChild(3).parent = null;//물건 부모해제
+            transform.GetChild(4).GetComponent<BoxCollider>().enabled = true;
+            transform.GetChild(4).GetComponent<Rigidbody>().isKinematic = false;
+            transform.GetChild(4).parent = null;//물건 부모해제
         }
         Claw.GetComponent<BoxCollider>().size = new Vector3(0, 0, 0);
         Claw.transform.localPosition = new Vector3(0, 0, 0);

@@ -5,7 +5,7 @@ using UnityEngine;
 public class MarkGenerator : MonoBehaviour {
     public GameObject NpcMark, BoxMark, DestinationMark;
     GameObject[] Npcs, Boxes;
-    GameObject Destination;
+    GameObject[] Destination;
     List<GameObject> EnemyMarks;
     // Use this for initialization
     void Awake()
@@ -20,7 +20,7 @@ public class MarkGenerator : MonoBehaviour {
         //
         Npcs = GameObject.FindGameObjectsWithTag("NPC_R" + StageLevel);//NPC_Rn테그를 가진 게임오브젝트 배열을 리턴
         Boxes = GameObject.FindGameObjectsWithTag("Box");
-        Destination = GameObject.Find("Area_R" + StageLevel);
+        Destination = GameObject.FindGameObjectsWithTag("GoalArea");
         //Enemys = GameObject.FindGameObjectsWithTag("ENEMY_R" + StageLevel);
         if (Npcs.Length > 0)
         {
@@ -38,10 +38,13 @@ public class MarkGenerator : MonoBehaviour {
                 temp.GetComponent<MinimapMark>().target = Box;
             }
         }
-        if(Destination != null)//목적지 미니맵 생성
+        if(Destination.Length > 0)//목적지 미니맵 생성
         {
-            GameObject temp = Instantiate(DestinationMark, new Vector3(0, 1249, 0), Quaternion.identity);
-            temp.GetComponent<MinimapMark>().target = Destination;
+            foreach (GameObject des in Destination)
+            {
+                GameObject temp = Instantiate(DestinationMark, new Vector3(0, 1249, 0), Quaternion.identity);
+                temp.GetComponent<MinimapMark>().target = des;
+            }
         }
 
     }
@@ -51,13 +54,4 @@ public class MarkGenerator : MonoBehaviour {
         GameObject temp = Instantiate(BoxMark, new Vector3(0, 1248.5f, 0), Quaternion.identity);
         temp.GetComponent<MinimapMark>().target = Box;
     }
-    /*
-    void EnemyDead(GameObject sender)//박스제거
-    {
-        for (int i=0; i<EnemyMarks.Count; i++)
-        {
-            if (GameObject.ReferenceEquals(EnemyMarks[i].GetComponent<NpcMark>().target, sender)) EnemyMarks[i].SetActive(false); //마크 제거
-        }
-    }
-    */
 }

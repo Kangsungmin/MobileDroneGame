@@ -1,236 +1,293 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Facebook.Unity;
+using UnityEngine.SceneManagement;
 
 public class PlayerDataManager : MonoBehaviour
 {
     public static PlayerDataManager playerDataManager { get; private set; }//
     //public DroneDatabase modelDatabase;
-    public static int spanner { get; set; }
-    public static int money { get; set; }
-    public static int level { get; private set; }
-    public static int exp { get; private set; }
-    public static List<DroneModel> ownModels = new List<DroneModel>();
+	public static string userID { get; set; }
+	public static string gameID { get; set; }
+	public static int spanner { get; set; }
+	public static string spanner_time { get; set; }
+	public static int money { get; set; }
+	public static int level { get; set; }
+	public static int exp { get; set; }
+	public static List<DroneModel> Models = new List<DroneModel>();
+	public static List<DroneModel> ownModels = new List<DroneModel>();
+    public static Dictionary<int, int> ownParts = new Dictionary<int, int>();
     public static DroneModel nowUsingModel;
 
-    public Text SpannerView, MoneyView, LevelView;
+	public Text SpannerView, MoneyView, LevelView, NicknameView;
     string ownStringData;
     bool[] Loadmemory = new bool[6]{ false, false, false, false, false, false };
     private IEnumerator coroutine;
-    void Awake()
+    
+	string loaddataURL = "http://13.124.188.186/load_data.php";
+
+	//===========돈, 경험치 수정[시작]==============
+	public void IncreaseMoney(int value)
+	{
+		money = money + value;
+		PlayerPrefs.SetInt("money", money);
+	}
+
+	public void DecreaseMoney(int value)
+	{
+		money -= value;
+		PlayerPrefs.SetInt("money", money);
+	}
+
+	public void AddExp(int value)
+	{
+		exp += value;
+
+		//렙업이 가능한 지 검사
+		if (exp >= 100)
+		{
+			exp -= 100;
+			level++;
+		}
+		PlayerPrefs.SetInt("level", level);
+		PlayerPrefs.SetInt("exp", exp);
+	}
+	//===========돈, 경험치 수정[끝]================
+
+	void Awake()
     {
         playerDataManager = this;
-        //PlayerPrefs.DeleteAll();
-        //초기화 할 때 주석 제거
-        //PlayerPrefs.SetInt("spanner", 10);
-        //PlayerPrefs.SetInt("money", 5000);
-        /*
-        PlayerPrefs.SetInt("spanner",5);
-        PlayerPrefs.SetInt("money", 500);
-        PlayerPrefs.SetInt("level", 1);
-        PlayerPrefs.SetInt("exp", 0);
-        PlayerPrefs.SetInt("nowModel", 0);//현재 사용중인 모델 '1'
-        PlayerPrefs.SetString("Models", "0");//가진것 1번모델로 초기화
-        */
-        if (!PlayerPrefs.HasKey("level"))
+        //============DB 구현시 해당 코드 삭제 요망.[시작]==========
+        if (ownParts.Count == 0)
         {
-            //=====초기 사용자 세팅=========
-            PlayerPrefs.SetInt("spanner",10);
-            PlayerPrefs.SetInt("money", 300);
-            PlayerPrefs.SetInt("level", 1);
-            PlayerPrefs.SetInt("exp", 0);
-            PlayerPrefs.SetInt("nowModel", 0);//현재 사용중인 모델 '1'
-            PlayerPrefs.SetString("Models", "0");//가진것 1번모델로 초기화
-            
+            ownParts.Add(1, 0);
+            ownParts.Add(2, 0);
+            ownParts.Add(3, 0);
+            ownParts.Add(4, 0);
+            ownParts.Add(5, 0);
         }
-        //modelDatabase 구성될 때 까지 대기
+        //=========DB 구현시 해당 코드 삭제 요망.[끝]============
 
     }
 
     void Start()
-    {
-        print(DroneDatabase.path);
-        //Log.text = "경로 : " + DroneDatabase.path + "\n";
-        coroutine = DroneDBLoad();
-        StartCoroutine(coroutine);//DB로드 완료후, PlayerPrefs을 로드한다.
+	{
+		FB.Init ();
+
+		userID = PlayerPrefs.GetString ("ID");
+
+		StartCoroutine (Load_Data ());
+	
     }
 
     void Update()
     {
-        if (ownModels.Count != 0) ;
-
-        if (nowUsingModel != null) ;
-
-        if (Loadmemory[0] && Loadmemory[0] && Loadmemory[0] && Loadmemory[0] && Loadmemory[0] && Loadmemory[0])
-        {
-            spanner = PlayerPrefs.GetInt("spanner");
-            SpannerView.text = spanner.ToString() + "/10";
-        }
+            
 
     }
-    //===========돈, 경험치 수정[시작]==============
-    public void IncreaseMoney(int value)
-    {
-        money = money + value;
-        PlayerPrefs.SetInt("money", money);
-    }
+    
+	IEnumerator Load_Data() {
 
-    public void DecreaseMoney(int value)
-    {
-        money -= value;
-        PlayerPrefs.SetInt("money", money);
-    }
+		// -------닉네임, 돈, 레벨, 경험치 정보 로드-----------------
+		// ---------------------------------------------------------
+		WWWForm form = new WWWForm();
+		form.AddField("userIDPost", userID);
 
-    public void AddExp(int value)
-    {
-        exp += value;
+		WWW data = new WWW(loaddataURL, form);
+		yield return data;
 
-        //렙업이 가능한 지 검사
-        if (exp >= 100)
-        {
-            exp -= 100;
-            level++;
-        }
-        PlayerPrefs.SetInt("level", level);
-        PlayerPrefs.SetInt("exp", exp);
-    }
-    //===========돈, 경험치 수정[끝]================
+		string user_Data = data.text;
+		print (user_Data);
 
-    public void DBRefresh()//PlayerPrefs 다시 불러와서 새로고침
-    {
-        coroutine = PlayerPrefsLoad("spanner");
-        StartCoroutine(coroutine);
-        coroutine = PlayerPrefsLoad("money");
-        StartCoroutine(coroutine);
-        coroutine = PlayerPrefsLoad("level");
-        StartCoroutine(coroutine);
-        coroutine = PlayerPrefsLoad("exp");
-        StartCoroutine(coroutine);
+		gameID = GetDataValue (user_Data, "gameID:");
+		money = int.Parse(GetDataValue (user_Data, "Money:"));
+		level = int.Parse(GetDataValue (user_Data, "Level:"));
+		exp = int.Parse(GetDataValue (user_Data, "Experience:"));
+		spanner = int.Parse(GetDataValue (user_Data, "Spanner_Num:"));
+		spanner_time = GetDataValue (user_Data, "Spanner_Time:");
 
-        coroutine = PlayerPrefsLoad("Models");
-        StartCoroutine(coroutine);//PlayerPrefs 데이터네임, 결과 받을 변수
-        coroutine = PlayerPrefsLoad("nowModel");
-        StartCoroutine(coroutine);
-    }
+		//--------------------------------------------------------
 
-    public List<DroneModel> ParseModels(string DBstinrg)//string -> List
-    {
-        List<DroneModel> output = new List<DroneModel>();
-        string[] ids = DBstinrg.Split(',');//
-        //Log.text += "보유리스트 길이 : "+ids.Length+"\n";
-        for (int i = 0; i < ids.Length; i++)
-        {
-            DroneModel model = DroneDatabase.FetchDroneByID(int.Parse(ids[i]));
-            output.Add(model);
-        }
-        return output;
-    }
-    public IEnumerator DroneDBLoad()
-    {
-        while (!DroneDatabase.isLoaded)
-        {
-            yield return null;
-        }
-        //DroneDB로딩이 완료
-        coroutine = PlayerPrefsLoad("spanner");
-        StartCoroutine(coroutine);
-        coroutine = PlayerPrefsLoad("money");
-        StartCoroutine(coroutine);
-        coroutine = PlayerPrefsLoad("level");
-        StartCoroutine(coroutine);
-        coroutine = PlayerPrefsLoad("exp");
-        StartCoroutine(coroutine);
+		// -----------------------------------------------------------
+		// ------------- 스페너 개수 갱신 -----------------------------
 
-        coroutine = PlayerPrefsLoad("nowModel");
-        StartCoroutine(coroutine);
-        coroutine = PlayerPrefsLoad("Models");
-        StartCoroutine(coroutine);//PlayerPrefs 데이터네임, 결과 받을 변수
-    }
+		if (spanner != 10)
+			Update_Spanner ();
+
+		// ------------------------------------------------------------
+
+		// -----------현재 사용 드론 로드-------------------------------
+		// -------------------------------------------------------------
+		int drone_equip = int.Parse(GetDataValue (user_Data, "Drone_Equip:"));
+
+		form.AddField("droneIDPost", drone_equip);
+
+		data = new WWW("http://13.124.188.186/load_drone.php", form);
+		yield return data;
+
+        user_Data = data.text;
+        
+        nowUsingModel = new DroneModel (int.Parse(GetDataValue(user_Data, "DroneID:")), 
+			GetDataValue(user_Data, "Name:"), int.Parse(GetDataValue(user_Data, "Price:")));
+        
+		//-------------------------------------------------------------
+
+		// ------소유 드론목록 로드--------------------------------------
+		// --------------------------------------------------------------
+		form.AddField("userIDPost", userID);
+
+		data = new WWW("http://13.124.188.186/load_user_drone.php", form);
+		yield return data;
+
+		user_Data = data.text;
+		user_Data = user_Data.Replace("\n","");
+		print (user_Data);
+		// 1,2,-1 이런식으로 return값 되있음.
+
+		string[] ids = user_Data.Split(',');
+		//Log.text += "보유리스트 길이 : "+ids.Length+"\n";
+		for (int i = 0; i < ids.Length-1; i++)
+		{
+			print ("droneid: " + ids [i]);
+			form.AddField("droneIDPost", ids[i]);
+
+			data = new WWW("http://13.124.188.186/load_drone.php", form);
+			yield return data;
+
+			user_Data = data.text;
+			print(user_Data);
+            
+			DroneModel model = new DroneModel(int.Parse(GetDataValue(user_Data, "DroneID:")), 
+				GetDataValue(user_Data, "Name:"), int.Parse(GetDataValue(user_Data, "Price:")));
+			ownModels.Add(model);
+		}
+
+		//-----------------------------------------------------------------
+
+		// --------전체 드론목록 로드-------------------------------------
+		// ---------------------------------------------------------------
+
+		for (int i = 0; i <= 4; i++) {
+			form.AddField("droneIDPost", i);
+			data = new WWW ("http://13.124.188.186/load_drone.php", form);
+			yield return data;
+
+			user_Data = data.text;
+
+			DroneModel model = new DroneModel (int.Parse(GetDataValue(user_Data, "DroneID:")), 
+				GetDataValue(user_Data, "Name:"), int.Parse(GetDataValue(user_Data, "Price:")));
+
+			Models.Add(model);
+		}
+
+		// ---------------------------------------------------------------
+
+		print (userID + " " + gameID + " " + money + " " + exp + " " + nowUsingModel.getTitle());
+
+		//SceneManager.LoadScene ("a");
+
+		MoneyView.text = money.ToString();
+		LevelView.text = level.ToString();
+		NicknameView.text = gameID;
+		SpannerView.text = spanner.ToString() + "/10";
+
+	}
+
+	string GetDataValue(string data, string index) {
+
+		string value = data.Substring(data.IndexOf(index)+index.Length);
+
+		//if (index != "Drone_Equip:") 
+			value = value.Remove(value.IndexOf("|"));
+
+		return value;
+	}
+
+	// -------------------------- 스페너 업데이트 ----------------------------------
+	void Update_Spanner () {
+		print (spanner_time);
+
+		int date = int.Parse (spanner_time.Substring (9, 1));
+		int h = int.Parse (spanner_time.Substring (11, 2));
+		int m = int.Parse (spanner_time.Substring (14, 2));
+		int s = int.Parse (spanner_time.Substring (17, 2));
+
+		int time = ((date * 24) + h + 9) * 60 * 60 + m * 60 + s; // 시간을 초로 바꿈.
+
+		print (date + " " + h + " " + m + " " + s + " " + time);
+
+		string cur_datetime = DateTime.Now.ToString ("yyyy-MM-dd-HH-mm-ss");
+		print (cur_datetime);
+		int cur_date = int.Parse (cur_datetime.Substring (9, 1));
+
+		int cur_h = int.Parse (cur_datetime.Substring (11, 2));
+		int cur_m = int.Parse (cur_datetime.Substring (14, 2));
+		int cur_s = int.Parse (cur_datetime.Substring (17, 2));
+
+		int cur_time = ((cur_date * 24) + cur_h) * 60 * 60 + cur_m * 60 + cur_s; // 현재 시간을 초로 바꿈
+
+		print (cur_date + " " + cur_h + " " + cur_m + " " + cur_s + " " + cur_time);
+
+		print("날짜 같고 초계산 시작");
+		// 날짜가 같기 때문에 초로 바꿔 계산
+		int addspanner = (cur_time - time) / 60; // 추가 가능한 스페너 수
+		print("addspanner: " + addspanner);
+		if (spanner + addspanner >= 10) {
+			print("full로 채워야함");
+			StartCoroutine (Update_Spanner_DB (10));
+
+		} else {
+			StartCoroutine (Update_Spanner_DB (spanner + addspanner));
+			print("타이머 처음 호출, 남은시간: " + (float)(cur_time - time) % 60);
+			StartCoroutine (Spanner_Timer(60f - (float)(cur_time - time) % 60));
+		}
 
 
-    public IEnumerator PlayerPrefsLoad(string dataName)
-    {
-        switch (dataName)
-        {
-            case "Models":
-                string load = "-1";
-                load = PlayerPrefs.GetString(dataName);
-                while (load.Equals("-1"))
-                {
-                    //Log.text = "\n 리스트 데이터 로딩중";
-                    yield return null;
-                }
-                //Log.text += load + "리스트 끝\n";
-                Loadmemory[0] = true;
-                ownModels = ParseModels(load);//ownModels로 변환
-                break;
+	}
 
-            case "nowModel":
-                int id = -1;
-                id = PlayerPrefs.GetInt(dataName);
-                while (id == -1)
-                {
-                    //Log.text = "\n 장착 데이터 로딩중";
-                    yield return null;
-                }
-                nowUsingModel = DroneDatabase.FetchDroneByID(id);
-                Loadmemory[1] = true;
-                break;
+	IEnumerator Update_Spanner_DB (int spanner_num) {
 
-            case "money":
-                int amount = -1;
-                amount = PlayerPrefs.GetInt(dataName);
-                while (amount == -1)
-                {
-                    //Log.text = "\n money 데이터 로딩중";
-                    yield return null;
-                }
-                
-                money = amount;
-                MoneyView.GetComponent<Text>().text = money.ToString();
-                Loadmemory[2] = true;
-                break;
+		WWWForm form = new WWWForm();
+		form.AddField("userIDPost", userID);
+		form.AddField ("spannerNumPost", spanner_num);
 
-            case "level":
-                int lev = -1;
-                lev = PlayerPrefs.GetInt(dataName);
-                while (lev == -1)
-                {
-                    //Log.text = "\n lev 데이터 로딩중";
-                    yield return null;
-                }
-                level = lev;
-                LevelView.GetComponent<Text>().text = level.ToString();
-                Loadmemory[3] = true;
-                break;
+		WWW data = new WWW("http://13.124.188.186/spanner_updater.php", form);
+		yield return data;
 
-            case "exp":
-                int e = -1;
-                e = PlayerPrefs.GetInt(dataName);
-                while (e == -1)
-                {
-                    //Log.text = "\n lev 데이터 로딩중";
-                    yield return null;
-                }
-                exp = e;
-                Loadmemory[4] = true;
-                break;
+		string user_Data = data.text;
 
-            case "spanner":
-                int s = -1;
-                s = PlayerPrefs.GetInt(dataName);
-                while (s == -1)
-                {
-                    yield return null;
-                }
-                spanner = s;
-                Loadmemory[5] = true;
-                break;
+		if (user_Data == "\n1") {
+			print("에코 1받고 spanner 채움");
+			spanner = spanner_num;
+			SpannerView.text = spanner.ToString () + "/10";
+		} else {
+			Debug.Log ("Spanner update failed...");
+		}
+	}
 
-            default:
-                break;
-        }
-    }
+	IEnumerator Spanner_Timer(float delayTime) {
+		print ("딜레이시간초: " + delayTime);
+
+		Debug.Log ("Time: " + Time.time);
+		yield return new WaitForSeconds (delayTime);
+
+		StartCoroutine (Update_Spanner_DB (spanner + 1)); // db에 스페너 개수 및 스페너 시간 설정.
+
+		if (spanner + 1 < 10) {
+			StartCoroutine (Spanner_Timer(60));
+		}
+
+	}
+
+	public void Logout() {
+		
+		PlayerPrefs.DeleteAll ();
+		FB.LogOut ();
+		SceneManager.LoadScene ("flogintest");
+	}
+		
 
 }

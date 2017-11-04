@@ -36,7 +36,7 @@ public abstract class Drone : MonoBehaviour {
 
     abstract public void getFuel();
     abstract public void Hit(int damage);
-    abstract public void GetItem(GameObject item);
+    //abstract public void GetItem(GameObject item);
     abstract public void GrabSomthing(GameObject target);
     abstract public void DropSomthing();
 

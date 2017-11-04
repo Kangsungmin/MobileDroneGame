@@ -7,7 +7,11 @@ using UnityEngine.SceneManagement;
 
 public class SceneFader : MonoBehaviour {
     public Image img;
-
+	public bool FadeEnd;
+	private void Awake()
+	{
+		FadeEnd = false;
+	}
     void Start()
     {
         StartCoroutine(FadeIn());
@@ -28,6 +32,7 @@ public class SceneFader : MonoBehaviour {
             img.color = new Color(0f,0f,0f,t); //t는 투명도
             yield return 0;
         }
+		FadeEnd = true;
         gameObject.SetActive(false);
     }
     IEnumerator FadeOut(string scene)

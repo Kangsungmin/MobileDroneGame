@@ -19,12 +19,7 @@ public class OnGrab : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         GaugeUI.SetActive(false);
 
     }
-
-    void Update()
-    {
-        //if(grabState.Equals("Using"))  
-        //else 
-    }
+    
     public void OnPointerDown(PointerEventData eventData)//버튼 눌린상태
     {
         //게이지 활성화
@@ -53,7 +48,7 @@ public class OnGrab : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
                 Grab();
                 Debug.Log("잡는다");
             }
-            gauge.GetComponent<GaugeHand>().ResetGauge();
+            //gauge.GetComponent<GaugeHand>().ResetGauge();
             GaugeUI.SetActive(false);
         }
         else

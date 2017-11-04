@@ -2,18 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Grab : MonoBehaviour {
-    float Range = 3.0f;
+public class Grab : MonoBehaviour
+{
+    float Range = 4.5f;
     GameObject gaugueUI;
     GameObject GrabButtonAni, GrabButton;
     GameObject target;
     GameObject[] Boxestemp;
     List<GameObject> Boxes = new List<GameObject>();
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         GrabButtonAni = GameObject.Find("UI").transform.Find("GrabButtonParent").gameObject;
         GrabButton = GameObject.Find("UI").transform.Find("GrabButton").gameObject;
-        gaugueUI = GameObject.Find("UI").transform.Find("GaugeBg").gameObject;
+        gaugueUI = GameObject.Find("UI").transform.Find("GaugePanel").gameObject;
     }
 
     // Update is called once per frame
@@ -33,7 +35,8 @@ public class Grab : MonoBehaviour {
                     GrabButton.SetActive(true);//상자 들기 버튼 활성화
                 }
             }
-            if (!isBox) {
+            if (!isBox)
+            {
                 target = null;
                 GrabButtonAni.SetActive(false);
                 GrabButton.SetActive(false);
@@ -50,10 +53,22 @@ public class Grab : MonoBehaviour {
     {
         Boxes.Add(box);
     }
+    public void RemoveBoxList(GameObject box)
+    {
+        foreach (GameObject B in Boxes)
+        {
+            if (B == box)
+            {
+                Boxes.Remove(B);
+                Debug.Log(B + "제거");
+                break;
+            }
+        }
+    }
 
     public void GrabMode()
     {
-        transform.root.SendMessage("GrabSomthing",target);
+        transform.root.SendMessage("GrabSomthing", target);
     }
 
 }

@@ -15,9 +15,9 @@ public class Menu : MonoBehaviour {
         Screen.SetResolution(1280, 800, true);
         Time.timeScale = 1;
         //Path.text = Application.dataPath;
-        Debug.Log("플레이어 레벨 : " + PlayerDataManager.level);
-        Debug.Log("경험치 : " + PlayerDataManager.exp);
-        Debug.Log("돈 : "+ PlayerDataManager.money);
+       // Debug.Log("플레이어 레벨 : " + PlayerDataManager.level);
+       // Debug.Log("경험치 : " + PlayerDataManager.exp);
+       // Debug.Log("돈 : "+ PlayerDataManager.money);
     }
     public void SingleplayBtn()
     {

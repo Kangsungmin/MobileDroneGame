@@ -3,17 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class InformationUI : MonoBehaviour {
-    public GameObject AddSpannerPanel;
+    public GameObject AddSpannerPanel, OptionPanel;
 	// Use this for initialization
 	void Awake () {
         AddSpannerPanel.SetActive(false);
+        OptionPanel.SetActive(false);
     }
 	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
+    public void OnOptionPanel()
+    {
+        OptionPanel.SetActive(true);
+    }
+    public void OffOptionPanel()
+    {
+        OptionPanel.SetActive(false);
+    }
     public void OnAddSpanner()
     {
         if (PlayerDataManager.spanner <10)

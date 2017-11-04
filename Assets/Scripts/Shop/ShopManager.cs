@@ -5,12 +5,15 @@ using UnityEngine.UI;
 
 public class ShopManager : MonoBehaviour {
     SceneFader Fader;
-    GameObject ViewCamera, LeftButton, RightButton, BuyPanel;
-    public GameObject ChangeButton;
+    GameObject ViewCamera, LeftButton, RightButton, BuyPanel, UsingInfo;
+    public GameObject PlayerDataView, UpgradeButton, ChangeButton, ComingSoonPanel;
     GameObject[] AllModels;
     Text MoneyView, ModelPriceView;
     int nowPoint;
     bool isMoving;
+
+	DroneModel thismodel;
+
 	// Use this for initialization
 	void Start () {
         Fader = GameObject.Find("SceneFader").GetComponent<SceneFader>();
@@ -19,79 +22,130 @@ public class ShopManager : MonoBehaviour {
         LeftButton = GameObject.Find("LeftBtn");
         RightButton = GameObject.Find("RightBtn");
         BuyPanel = GameObject.Find("BuyPanel");
+        UsingInfo = GameObject.Find("Using");
         nowPoint = 0;
         MoneyView = GameObject.Find("MoneyAmount").GetComponent<Text>();
         ModelPriceView = GameObject.Find("ModelPrice").GetComponent<Text>();
-        
+
+        UsingInfo.SetActive(false);
         LeftButton.SetActive(false);
         isMoving = false;
+        RefreshData();
     }
     void Update()
     {
         //GUI 업데이트
         MoneyView.text = PlayerDataManager.money.ToString();
-        DroneModel thismodel = DroneDatabase.FetchDroneByID(nowPoint);
+
+		thismodel = PlayerDataManager.Models[nowPoint];
         updateModelInfo(thismodel);
+
         if (CheckModelIs(thismodel))
         {
             BuyPanel.SetActive(false);
-            if (PlayerDataManager.nowUsingModel.ID == thismodel.ID) ChangeButton.SetActive(false); //현재 사용중
-            else ChangeButton.SetActive(true); //보유하고 있지만 현재 사용중 아님.
-
+            if (PlayerDataManager.nowUsingModel.getID() == thismodel.getID())
+            {
+                UsingInfo.SetActive(true);
+                UsingInfo.GetComponent<Text>().text = "사용중";
+                UpgradeButton.SetActive(true);
+                ChangeButton.SetActive(false); //현재 사용중
+            }
+            else
+            {
+                UsingInfo.SetActive(true);
+                UsingInfo.GetComponent<Text>().text = "교체가능";
+                UpgradeButton.SetActive(true);
+                ChangeButton.SetActive(true); //보유하고 있지만 현재 사용중 아님.
+            }
         }
         else
         {
+            UsingInfo.SetActive(false);
             BuyPanel.SetActive(true);
+            UpgradeButton.SetActive(false);
             ChangeButton.SetActive(false);
         }
             
+		if (nowPoint > 2) {
+			ComingSoonPanelOn ();
+		} else ComingSoonPanelOff ();
     }
 	
-    public void BuyModel(int id)
+    IEnumerator BuyModel(int id)
     {
         //PlayerData에 있는지 확인, 없으면 구매: 플레이어프리팹 추가 후 새로고침
-        DroneModel model = DroneDatabase.FetchDroneByID(id);
-        if (CheckModelIs(model))
-        {
-            //모델을 이미 보유하고 있음
+		thismodel = PlayerDataManager.Models[id];
+		if (CheckModelIs (thismodel)) {
+			//모델을 이미 보유하고 있음
+		} else {//아이템 구매 
+			WWWForm form = new WWWForm ();
+			form.AddField ("userIDPost", PlayerDataManager.userID);
+			form.AddField ("buyDronePost", thismodel.getID());
+
+			WWW data = new WWW ("http://13.124.188.186/buy_drone.php", form);
+			yield return data;
+
+			string user_Data = data.text;
+
+			if (user_Data == "\n0") { //돈이 부족해서 실패한 경우
+				print("buy failed..");
+				// open the dialog
+			} else {
+				//사는작업 성공 후 DB에 Update 성공한 상태.
+
+				// ======= 서버에서 받은 유저의 갱신된 돈을 클라이언트의 돈으로 갱신 =======
+
+				PlayerDataManager.money -= thismodel.getPrice();
+
+				// =====================================================================
+
+				// ======= 현재 추가해야할 드론정보를 DB에서 가져와 내 소유모델에 추가 =========
+
+				form.AddField("droneIDPost", thismodel.getID());
+
+				data = new WWW("http://13.124.188.186/load_drone.php", form);
+				yield return data;
+
+				user_Data = data.text;
+
+				DroneModel model = new DroneModel (int.Parse(GetDataValue(user_Data, "DroneID:")), 
+					GetDataValue(user_Data, "Name:"), int.Parse(GetDataValue(user_Data, "Price:")));
+
+				PlayerDataManager.ownModels.Add(model);
+
+				// =============================================================================
+
+			}
         }
-        else//아이템 구매 
-        {
-            if (model.Price <= PlayerDataManager.money)//해당 모델 가격보다 돈이 많을 때 Player Prefebs 에 보유 모델 추가
-            {
-                PlayerDataManager.playerDataManager.DecreaseMoney(model.Price);
-                //구매: 플레이어프리팹 추가 후 새로고침
-                PlayerPrefs.SetString("Models", PlayerPrefs.GetString("Models") + "," + id);
-            } else ;//돈이 부족합니다.
-        }
-        //새로고침
-        PlayerDataRefresh();
-        //PlayerDataManager.playerDataManager.DBRefresh();
     }
+
+	string GetDataValue(string data, string index) {
+
+		string value = data.Substring(data.IndexOf(index)+index.Length);
+
+		//if (index != "Drone_Equip:") 
+		value = value.Remove(value.IndexOf("|"));
+
+		return value;
+	}
+
     void updateModelInfo(DroneModel model)
     {
         //가격, 정보 업데이트
-        ModelPriceView.text = model.Price.ToString();
+		ModelPriceView.text = model.getPrice().ToString();
     }
 
     bool CheckModelIs(DroneModel model)
     {
         //PlayerData에 있는지 확인
         for (int i = 0; i < PlayerDataManager.ownModels.Count; i++)
-            if (PlayerDataManager.ownModels[i].ID == model.ID) return true;
+			if (PlayerDataManager.ownModels[i].getID() == model.getID()) return true;
         return false;
     }
 
     public void ThisModelBuy()//현재 모델 구매
     {
-        BuyModel(nowPoint);
-    }
-    
-    public void PlayerDataRefresh()
-    {
-        PlayerDataManager.money = PlayerPrefs.GetInt("money");
-        PlayerDataManager.ownModels = PlayerDataManager.playerDataManager.ParseModels(PlayerPrefs.GetString("Models"));
-        PlayerDataManager.nowUsingModel = DroneDatabase.FetchDroneByID(PlayerPrefs.GetInt("nowModel"));
+		StartCoroutine(BuyModel(nowPoint));
     }
 
     public void LeftShift()//좌로 이동
@@ -99,11 +153,16 @@ public class ShopManager : MonoBehaviour {
         if (!isMoving)
         {
             isMoving = true;
+
             nowPoint--;
+
+
             RightButton.SetActive(true);
-            if (nowPoint == 0)
+            
+			if (nowPoint == 0)
                 LeftButton.SetActive(false);
-            ViewCamera.SendMessage("ShiftLeft");
+            
+			ViewCamera.SendMessage("ShiftLeft");
 
             StartCoroutine("MovigLock");
         }
@@ -127,18 +186,46 @@ public class ShopManager : MonoBehaviour {
 
     public void ChangeModel()
     {
-        PlayerDataManager.nowUsingModel = DroneDatabase.FetchDroneByID(nowPoint);//현재 모델로 교체
-        PlayerPrefs.SetInt("nowModel", nowPoint);
-        print("현재 모델 "+PlayerDataManager.nowUsingModel.Title+"로 교체");
+        PlayerDataManager.nowUsingModel = thismodel;//현재 모델로 교체
+		StartCoroutine (SelectModel()); // DB 업데이트
+    }
+
+	IEnumerator SelectModel()
+	{
+		WWWForm form = new WWWForm ();
+		form.AddField ("userIDPost", PlayerDataManager.userID);
+		form.AddField ("selectDronePost", thismodel.getID());
+
+		WWW data = new WWW ("http://13.124.188.186/select_drone.php", form);
+		yield return data;
+
+		string user_Data = data.text;
+	}
+
+    public void RefreshData()//새로고침
+    {
+        Text BoxCount = PlayerDataView.transform.Find("BoxCount").GetComponent<Text>();
+        BoxCount.text = PlayerDataManager.ownParts[1].ToString();
+        Text PlasticCount = PlayerDataView.transform.Find("PlasticCount").GetComponent<Text>();
+        PlasticCount.text = PlayerDataManager.ownParts[2].ToString();
+        Text IronCount = PlayerDataView.transform.Find("IronCount").GetComponent<Text>();
+        IronCount.text = PlayerDataManager.ownParts[3].ToString();
+        Text AluminumCount = PlayerDataView.transform.Find("AluminumCount").GetComponent<Text>();
+        AluminumCount.text = PlayerDataManager.ownParts[4].ToString();
     }
 
     public void GoBackMenu()
     {
         Fader.FadeTo("Menu");
     }
-
-
-    
+    public void ComingSoonPanelOn()
+    {
+        ComingSoonPanel.SetActive(true);
+    }
+    public void ComingSoonPanelOff()
+    {
+        ComingSoonPanel.SetActive(false);
+    }
     IEnumerator MovigLock()
     {
         yield return new WaitForSeconds(1.05f);

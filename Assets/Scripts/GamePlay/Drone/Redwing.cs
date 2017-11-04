@@ -207,24 +207,7 @@ public class Redwing : Drone
         {
             Destroy(col.gameObject);
             //col.transform.gameObject.SetActive(false);
-            GetItem(col.gameObject);
-        }
-        else if (col.tag.Contains("NPC_R"))//미션 관련 NPC를 만났을 때,
-        {
-            if (InventoryManager.GetComponent<Inventory>().isItem(0))//id(0)은 피자.
-            {
-                InventoryManager.GetComponent<Inventory>().RemoveItem(0);//피자 아이템을 제거한다.
-                print("피자배달 완료");
-                //Playenv에 메세지 전달
-                col.gameObject.GetComponent<Animator>().SetInteger("State", 2);//NPC애니메이션 설정
-                col.tag = "NPC";//태그 수정
-                playEnvironment.GetComponent<Playenv>().MissionCount--;
-                print(playEnvironment.GetComponent<Playenv>().MissionCount);
-            }
-            else
-            {
-                print("피자를 주문했는데 아직 안왔어...");
-            }
+           
         }
         else if (col.tag == "Box")
         {
@@ -316,22 +299,6 @@ public class Redwing : Drone
         }
     }
     //=============================드론 공격받음[끝]===============================
-
-    public override void GetItem(GameObject item)
-    {
-        switch (item.name)
-        {
-            case "pizza":
-                InventoryManager.GetComponent<Inventory>().AddItem(0);
-                break;
-            case "Brushed_Motor":
-                InventoryManager.GetComponent<Inventory>().AddItem(1);
-                break;
-            case "Propeller":
-                InventoryManager.GetComponent<Inventory>().AddItem(2);
-                break;
-        }
-    }
 
     public void SmoothLookAt(Vector3 T)
     {
