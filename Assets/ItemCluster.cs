@@ -17,6 +17,7 @@ public class ItemCluster : MonoBehaviour {
     {
         thisRB.isKinematic = true;
         HidItem.SetActive(true);
+        GetComponent<Collider>().isTrigger = true;
     }
 
 }

@@ -164,14 +164,14 @@ public class Spliter : Drone
         }
         else
         {
-            if (thisRB.velocity.magnitude > 2.5f)
+            if (thisRB.velocity.magnitude > 10.0f)
             {
-                Hit((int)thisRB.velocity.magnitude);
+                //Hit((int)thisRB.velocity.magnitude);
                 DropSomthing();
             }
-            else if (thisRB.velocity.magnitude > 1.3f)
+            else if (thisRB.velocity.magnitude > 2.5f)
             {
-                Hit((int)thisRB.velocity.magnitude);
+                //Hit((int)thisRB.velocity.magnitude);
             }
             else
             {

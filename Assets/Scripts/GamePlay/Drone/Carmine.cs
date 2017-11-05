@@ -10,7 +10,7 @@ public class Carmine : Drone
     float endX, endZ;
     void Awake()
     {
-        Speed = 85;
+        Speed = 115;
         thisRB = GetComponent<Rigidbody>();
     }
     void Start()
@@ -21,9 +21,9 @@ public class Carmine : Drone
         moveJoystickLeft = UIManager.transform.Find("VirtualJoystickLeft").GetComponent<VirtualJS_Left>();
         moveJoystickRight = UIManager.transform.Find("VirtualJoystickRight").GetComponent<VirtualJS_Right>();
         Claw = transform.Find("Claw");
-        grabEffect = transform.Find("FixRotation").Find("GrabEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        grabEffect = transform.Find("ParticlePack").Find("GrabEffect").Find("Particle System").GetComponent<ParticleSystem>();
         grabEffect.Stop();
-        GoalInEffect = transform.Find("FixRotation").Find("GoalInEffect").Find("Particle System").GetComponent<ParticleSystem>();
+        GoalInEffect = transform.Find("ParticlePack").Find("GoalInEffect").Find("Particle System").GetComponent<ParticleSystem>();
         GoalInEffect.Stop();
         AnimatorState = true;//드론 에니메이션 상태
         wingDir = new Vector3(270, 180, 0);
@@ -38,9 +38,6 @@ public class Carmine : Drone
     void Update()
     {
         bodyDir = Vector3.zero;
-
-        float amtMove = Speed * Time.smoothDeltaTime;//프레임당 이동 거리
-        //float amtRot = RotSpeed * Time.smoothDeltaTime;//드론 z축기준 회전 속도
         float keyUp = Input.GetAxis("Up");
         //=============================드론 에니메이션[시작]=============================
         Animations();
@@ -186,13 +183,18 @@ public class Carmine : Drone
         }
         else
         {
-            if (thisRB.velocity.magnitude < 1.3f)
+            if (thisRB.velocity.magnitude > 10.0f)
             {
-
+                //Hit((int)thisRB.velocity.magnitude);
+                DropSomthing();
+            }
+            else if (thisRB.velocity.magnitude > 2.5f)
+            {
+                //Hit((int)thisRB.velocity.magnitude);
             }
             else
             {
-                Hit((int)thisRB.velocity.magnitude);
+                //약한충돌로 무시한다.
             }
         }
     }
@@ -288,10 +290,9 @@ public class Carmine : Drone
     }
     public override void DropSomthing()
     {
-
         if (transform.childCount >= 5)
         {
-            GetComponent<Rigidbody>().mass -= transform.GetChild(3).GetComponent<Rigidbody>().mass;
+            GetComponent<Rigidbody>().mass -= transform.GetChild(4).GetComponent<Rigidbody>().mass;
             transform.GetChild(4).GetComponent<BoxCollider>().enabled = true;
             transform.GetChild(4).GetComponent<Rigidbody>().isKinematic = false;
             transform.GetChild(4).parent = null;//물건 부모해제

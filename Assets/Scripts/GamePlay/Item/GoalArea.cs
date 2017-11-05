@@ -26,9 +26,8 @@ public class GoalArea : MonoBehaviour
             Player.SendMessage("GoalInParticlePlay");
             Playenv.SpawnBoxCount--;
         }
-        else if (col.tag.Contains("Player"))
+        else if(col.tag.Contains("Player"))
         {
-            //print("드론 인");
             col.GetComponentInParent<Drone>().DropSomthing();
         }
     }

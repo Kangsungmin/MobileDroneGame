@@ -21,10 +21,8 @@ public class Fild_Item : MonoBehaviour {
 
     void OnTriggerEnter(Collider target)
     {
-        print("트리거");
         if (target.tag.Contains("Player"))
         {
-            print("타겟팅");
             Target = target.gameObject;
         }
     }
